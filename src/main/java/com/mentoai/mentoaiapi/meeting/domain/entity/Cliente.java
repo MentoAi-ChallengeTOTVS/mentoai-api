@@ -24,7 +24,7 @@ public class Cliente {
     }
 
     public List<Reuniao> obterHistorico() {
-        return new ArrayList<>();
+        return reunioes;
     }
 
     public void adicionarReuniao(Reuniao reuniao) {

@@ -35,6 +35,16 @@ public class Insight {
 
     }
 
+    @Override
+    public String toString() {
+        return "Insight{" +
+                "id=" + id +
+                ", tipo=" + tipo +
+                ", severidade=" + severidade +
+                ", descricao='" + descricao + '\'' +
+                '}';
+    }
+
     public Long getId() {
         return id;
     }

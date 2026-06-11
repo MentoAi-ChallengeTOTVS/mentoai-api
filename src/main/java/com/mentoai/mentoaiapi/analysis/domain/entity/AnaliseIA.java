@@ -17,6 +17,8 @@ public class AnaliseIA {
 
     private Reuniao reuniao;
 
+
+    private List<Insight> insights = new ArrayList<>();
     public AnaliseIA(){
 
     }
@@ -29,6 +31,11 @@ public class AnaliseIA {
         this.reuniao = reuniao;
     }
 
+
+    public void adicionarInsight(Insight insight){
+        insights.add(insight);
+    }
+
     public String gerarResumoExecutivo() {
 
         return resumoExecutivo;
@@ -36,9 +43,17 @@ public class AnaliseIA {
     }
 
     public List<Insight> gerarInsights() {
+        return insights;
+    }
 
-        return new ArrayList<>();
-
+    @Override
+    public String toString() {
+        return "AnaliseIA{" +
+                "id=" + id +
+                ", sentimentoGeral=" + sentimentoGeral +
+                ", riscoChurn=" + riscoChurn +
+                ", resumoExecutivo='" + resumoExecutivo + '\'' +
+                '}';
     }
 
     public Long getId() {
