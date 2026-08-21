@@ -41,11 +41,11 @@ presentation
 
 A abordagem combina DDD e Clean Architecture de forma pragmática, priorizando baixo acoplamento e simplicidade compatível com o MVP.
 
-Veja [ARCHITECTURE.md](ARCHITECTURE.md).
+Veja [ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Documentação técnica
 
-- [Arquitetura](ARCHITECTURE.md)
+- [Arquitetura](docs/ARCHITECTURE.md)
 - [Modelo de Domínio](docs/DOMAIN_MODEL.md)
 - [Banco de Dados](docs/DATABASE.md)
 - [Arquitetura de IA](docs/AI_ARCHITECTURE.md)
