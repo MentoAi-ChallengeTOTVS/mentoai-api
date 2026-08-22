@@ -2,9 +2,9 @@ spring:
   application:
     name: mentoai-api
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:oracle:thin:@localhost:1521/XEPDB1
+    username: teste
+    password: a123
     driver-class-name: oracle.jdbc.OracleDriver
   jpa:
     open-in-view: false
