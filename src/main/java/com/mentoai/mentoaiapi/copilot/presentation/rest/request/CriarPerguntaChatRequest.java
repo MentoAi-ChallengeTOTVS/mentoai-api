@@ -1,0 +1,10 @@
+package com.mentoai.mentoaiapi.copilot.presentation.rest.request;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public record CriarPerguntaChatRequest(
+        @NotNull Long chatId,
+        @NotBlank String pergunta
+) {
+}
