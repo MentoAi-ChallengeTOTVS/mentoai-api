@@ -1,5 +1,5 @@
 # =========================
-# Etapa 1: Build
+# BUILD
 # =========================
 FROM maven:3.9-eclipse-temurin-21 AS build
 
@@ -15,7 +15,7 @@ RUN mvn clean package -DskipTests
 
 
 # =========================
-# Etapa 2: Runtime
+# RUNTIME
 # =========================
 FROM eclipse-temurin:21-jre
 
