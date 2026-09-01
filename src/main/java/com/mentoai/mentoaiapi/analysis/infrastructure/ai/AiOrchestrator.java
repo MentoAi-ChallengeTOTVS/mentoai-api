@@ -8,9 +8,9 @@ import com.mentoai.mentoaiapi.analysis.infrastructure.ai.provider.GeminiAiProvid
 import com.mentoai.mentoaiapi.analysis.infrastructure.ai.provider.GroqAiProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
+// import org.springframework.stereotype.Component;
 
-@Component
+// @Component
 public class AiOrchestrator implements AiProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AiOrchestrator.class);

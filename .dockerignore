@@ -3,5 +3,7 @@ target/
 .git/
 .gitignore
 *.iml
-.env
 README.md
+.github/
+.vscode/
+.env
