@@ -34,6 +34,20 @@ public class AnaliseIAService {
                 LocalDateTime.now(), null, null, null));
     }
 
+    @Transactional
+    public AnaliseIA iniciarProcessamento(Long analiseId) {
+        AnaliseIA analise = buscarPorId(analiseId);
+        analise.iniciarProcessamento();
+        return analiseRepository.salvar(analise);
+    }
+
+    @Transactional
+    public AnaliseIA registrarFalha(Long analiseId, String mensagem) {
+        AnaliseIA analise = buscarPorId(analiseId);
+        analise.falhar(mensagem);
+        return analiseRepository.salvar(analise);
+    }
+
     @Transactional(readOnly = true)
     public AnaliseIA buscarPorId(Long id) {
         return analiseRepository.buscarPorId(id)
