@@ -32,8 +32,15 @@ public class ReuniaoService {
     public Reuniao criar(LocalDateTime dataReuniao, Integer duracaoMinutos, Long clienteId, Long usuarioId) {
         Cliente cliente = cliente(clienteId);
         Usuario usuario = usuario(usuarioId);
-        return reuniaoRepository.salvar(new Reuniao(
-                null, dataReuniao, duracaoMinutos, cliente, usuario, LocalDateTime.now()));
+        return reuniaoRepository.salvar(
+                new Reuniao(
+                null,
+                dataReuniao,
+                duracaoMinutos,
+                cliente,
+                usuario,
+                LocalDateTime.now()
+        ));
     }
 
     @Transactional(readOnly = true)

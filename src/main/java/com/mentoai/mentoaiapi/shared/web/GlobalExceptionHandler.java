@@ -5,6 +5,7 @@ import com.mentoai.mentoaiapi.shared.exception.ConflictException;
 import com.mentoai.mentoaiapi.shared.exception.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import java.io.UncheckedIOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.slf4j.Logger;
@@ -13,9 +14,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -63,6 +66,25 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUnreadableMessage(
             HttpMessageNotReadableException exception, HttpServletRequest request) {
         return build(HttpStatus.BAD_REQUEST, "Corpo da requisição inválido", request, null);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUploadSize(
+            MaxUploadSizeExceededException exception, HttpServletRequest request) {
+        return build(HttpStatus.CONTENT_TOO_LARGE, "O arquivo excede o limite permitido", request, null);
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleUnsupportedMediaType(
+            HttpMediaTypeNotSupportedException exception, HttpServletRequest request) {
+        return build(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Tipo de mídia não suportado", request, null);
+    }
+
+    @ExceptionHandler(UncheckedIOException.class)
+    public ResponseEntity<ErrorResponse> handleFileReadFailure(
+            UncheckedIOException exception, HttpServletRequest request) {
+        LOGGER.error("Falha ao ler arquivo enviado em {}", request.getRequestURI(), exception);
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Não foi possível ler o arquivo enviado", request, null);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
