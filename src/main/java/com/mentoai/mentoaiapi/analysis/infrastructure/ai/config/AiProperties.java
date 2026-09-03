@@ -3,9 +3,9 @@ package com.mentoai.mentoaiapi.analysis.infrastructure.ai.config;
 import java.time.Duration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-// import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Component;
 
-// @Component
+@Component
 @ConfigurationProperties(prefix = "mentoai.ai")
 public class AiProperties {
 
