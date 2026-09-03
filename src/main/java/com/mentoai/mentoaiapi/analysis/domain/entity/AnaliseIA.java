@@ -48,6 +48,25 @@ public class AnaliseIA {
         this.mensagemErro = null;
     }
 
+    public void concluir(String resumoExecutivo, SentimentoGeral sentimentoGeral) {
+        if (statusProcessamento != StatusProcessamento.PROCESSANDO) {
+            throw new ConflictException("A análise só pode ser concluída quando estiver PROCESSANDO");
+        }
+        if (resumoExecutivo == null || resumoExecutivo.isBlank()) {
+            throw new BusinessException("O resumo executivo é obrigatório");
+        }
+        if (sentimentoGeral == null) {
+            throw new BusinessException("O sentimento geral é obrigatório");
+        }
+
+        LocalDateTime agora = LocalDateTime.now();
+        this.resumoExecutivo = resumoExecutivo;
+        this.sentimentoGeral = sentimentoGeral;
+        this.finalizadoEm = agora;
+        this.statusProcessamento = StatusProcessamento.PROCESSADA;
+        this.mensagemErro = null;
+    }
+
     public void falhar(String mensagemErro) {
         if (statusProcessamento != StatusProcessamento.PROCESSANDO) {
             throw new ConflictException("A análise só pode registrar falha quando estiver PROCESSANDO");

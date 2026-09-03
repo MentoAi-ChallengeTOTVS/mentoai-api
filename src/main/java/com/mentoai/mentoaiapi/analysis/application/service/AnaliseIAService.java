@@ -1,6 +1,7 @@
 package com.mentoai.mentoaiapi.analysis.application.service;
 
 import com.mentoai.mentoaiapi.analysis.domain.entity.AnaliseIA;
+import com.mentoai.mentoaiapi.analysis.domain.enums.SentimentoGeral;
 import com.mentoai.mentoaiapi.analysis.domain.enums.StatusProcessamento;
 import com.mentoai.mentoaiapi.analysis.domain.repository.AnaliseIARepository;
 import com.mentoai.mentoaiapi.meeting.domain.entity.Reuniao;
@@ -38,6 +39,13 @@ public class AnaliseIAService {
     public AnaliseIA iniciarProcessamento(Long analiseId) {
         AnaliseIA analise = buscarPorId(analiseId);
         analise.iniciarProcessamento();
+        return analiseRepository.salvar(analise);
+    }
+
+    @Transactional
+    public AnaliseIA concluir(Long analiseId, String resumoExecutivo, SentimentoGeral sentimentoGeral) {
+        AnaliseIA analise = buscarPorId(analiseId);
+        analise.concluir(resumoExecutivo, sentimentoGeral);
         return analiseRepository.salvar(analise);
     }
 
