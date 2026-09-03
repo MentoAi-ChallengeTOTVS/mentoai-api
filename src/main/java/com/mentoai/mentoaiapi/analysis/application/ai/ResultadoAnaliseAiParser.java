@@ -11,6 +11,8 @@ import com.networknt.schema.SpecificationVersion;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
@@ -22,6 +24,7 @@ import tools.jackson.databind.json.JsonMapper;
 @Component
 public class ResultadoAnaliseAiParser {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResultadoAnaliseAiParser.class);
     static final String SCHEMA_RESOURCE = "ai/analise-comercial-v1.schema.json";
 
     private final JsonMapper mapper;
@@ -59,8 +62,16 @@ public class ResultadoAnaliseAiParser {
             throw new IllegalStateException("A resposta da IA não contém um JSON válido para o contrato de análise V1");
         }
 
-        for (SinalComercialGerado sinal : resultado.sinaisComerciais()) {
+        for (int indice = 0; indice < resultado.sinaisComerciais().size(); indice++) {
+            SinalComercialGerado sinal = resultado.sinaisComerciais().get(indice);
             if (!entrada.transcricao().conteudo().contains(sinal.evidencia())) {
+                LOGGER.warn("Evidência ausente da transcrição: sinal={}, tipo={}, tamanho={}. Detalhe disponível em DEBUG.",
+                        indice + 1, sinal.tipo(), sinal.evidencia().length());
+                if (LOGGER.isDebugEnabled()) {
+                    // Diagnóstico local: o JSON torna quebras de linha visíveis sem registrar a transcrição inteira.
+                    LOGGER.debug("Evidência rejeitada: sinal={}, tipo={}, evidenciaJson={}",
+                            indice + 1, sinal.tipo(), mapper.writeValueAsString(sinal.evidencia()));
+                }
                 throw new IllegalStateException("A resposta da IA contém evidência ausente da transcrição");
             }
         }

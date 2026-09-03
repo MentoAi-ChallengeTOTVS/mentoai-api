@@ -23,6 +23,11 @@ spring:
     locations: classpath:db/migration
 
 mentoai:
+  analysis:
+    async:
+      pool-size: ${ANALYSIS_ASYNC_POOL_SIZE:2}
+      queue-capacity: ${ANALYSIS_ASYNC_QUEUE_CAPACITY:50}
+
   ai:
     connect-timeout: ${AI_CONNECT_TIMEOUT:5s}
     read-timeout: ${AI_READ_TIMEOUT:60s}

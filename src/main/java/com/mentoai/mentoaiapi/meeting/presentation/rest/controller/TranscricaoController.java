@@ -47,6 +47,6 @@ public class TranscricaoController {
                 result.transcricaoId(),
                 result.analiseId(),
                 result.status());
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 }
