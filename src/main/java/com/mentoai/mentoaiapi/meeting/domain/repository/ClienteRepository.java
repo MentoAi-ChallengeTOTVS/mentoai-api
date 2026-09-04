@@ -8,6 +8,7 @@ public interface ClienteRepository {
 
     Cliente salvar(Cliente cliente);
     Optional<Cliente> buscarPorId(Long id);
-    List<Cliente> listar();
+    Pagina<Cliente> listar(ClienteFiltro filtro,int pagina,int tamanho,String ordenarPor,String direcao);
+
     boolean existePorId(Long id);
 }

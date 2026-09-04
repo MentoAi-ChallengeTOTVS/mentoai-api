@@ -3,6 +3,8 @@ package com.mentoai.mentoaiapi.meeting.application.service;
 import com.mentoai.mentoaiapi.meeting.domain.entity.Cliente;
 import com.mentoai.mentoaiapi.meeting.domain.repository.ClienteRepository;
 import com.mentoai.mentoaiapi.shared.exception.ResourceNotFoundException;
+import com.mentoai.mentoaiapi.meeting.domain.repository.ClienteFiltro;
+import com.mentoai.mentoaiapi.meeting.domain.repository.Pagina;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -24,13 +26,13 @@ public class ClienteService {
 
     @Transactional(readOnly = true)
     public Cliente buscarPorId(Long id) {
-        return clienteRepository.buscarPorId(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado: " + id));
+        return clienteRepository.buscarPorId(id).orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado: " + id));
     }
 
     @Transactional(readOnly = true)
-    public List<Cliente> listar() {
-        return clienteRepository.listar();
+    public Pagina<Cliente> listar(ClienteFiltro filtro,int pagina,int tamanho,String ordenarPor,String direcao) 
+    {
+        return clienteRepository.listar(filtro,pagina,tamanho,ordenarPor,direcao);
     }
 
     @Transactional
