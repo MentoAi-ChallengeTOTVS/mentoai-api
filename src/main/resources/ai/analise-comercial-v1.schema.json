@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ResultadoAnaliseAiV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["resumoExecutivo", "sentimentoGeral", "sinaisComerciais", "insights"],
+  "properties": {
+    "resumoExecutivo": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "sentimentoGeral": {
+      "type": "string",
+      "enum": ["POSITIVO", "NEUTRO", "NEGATIVO"]
+    },
+    "sinaisComerciais": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["tipo", "descricao", "evidencia", "relevancia"],
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "enum": ["NECESSIDADE", "DOR", "OBJECAO", "ORCAMENTO", "PRAZO", "MOMENTO_CLIENTE", "CONCORRENCIA", "OPORTUNIDADE", "RISCO_CHURN"]
+          },
+          "descricao": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "evidencia": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "relevancia": {
+            "type": "string",
+            "enum": ["BAIXA", "MEDIA", "ALTA"]
+          }
+        }
+      }
+    },
+    "insights": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["tipo", "descricao", "severidade"],
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "enum": ["RISCO", "OPORTUNIDADE", "TENDENCIA", "ESTRATEGICO"]
+          },
+          "descricao": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "severidade": {
+            "type": "string",
+            "enum": ["BAIXA", "MEDIA", "ALTA"]
+          }
+        }
+      }
+    }
+  }
+}

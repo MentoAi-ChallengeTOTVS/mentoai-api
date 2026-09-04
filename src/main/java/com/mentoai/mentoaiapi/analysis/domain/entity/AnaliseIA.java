@@ -3,6 +3,8 @@ package com.mentoai.mentoaiapi.analysis.domain.entity;
 import com.mentoai.mentoaiapi.analysis.domain.enums.SentimentoGeral;
 import com.mentoai.mentoaiapi.analysis.domain.enums.StatusProcessamento;
 import com.mentoai.mentoaiapi.meeting.domain.entity.Reuniao;
+import com.mentoai.mentoaiapi.shared.exception.BusinessException;
+import com.mentoai.mentoaiapi.shared.exception.ConflictException;
 import java.time.LocalDateTime;
 
 public class AnaliseIA {
@@ -34,6 +36,51 @@ public class AnaliseIA {
         this.mensagemErro = mensagemErro;
     }
 
+    public void iniciarProcessamento() {
+        if (statusProcessamento != StatusProcessamento.PENDENTE) {
+            throw new ConflictException("A análise só pode iniciar o processamento quando estiver PENDENTE");
+        }
+
+        LocalDateTime agora = LocalDateTime.now();
+        this.statusProcessamento = StatusProcessamento.PROCESSANDO;
+        this.iniciadoEm = agora;
+        this.finalizadoEm = null;
+        this.mensagemErro = null;
+    }
+
+    public void concluir(String resumoExecutivo, SentimentoGeral sentimentoGeral) {
+        if (statusProcessamento != StatusProcessamento.PROCESSANDO) {
+            throw new ConflictException("A análise só pode ser concluída quando estiver PROCESSANDO");
+        }
+        if (resumoExecutivo == null || resumoExecutivo.isBlank()) {
+            throw new BusinessException("O resumo executivo é obrigatório");
+        }
+        if (sentimentoGeral == null) {
+            throw new BusinessException("O sentimento geral é obrigatório");
+        }
+
+        LocalDateTime agora = LocalDateTime.now();
+        this.resumoExecutivo = resumoExecutivo;
+        this.sentimentoGeral = sentimentoGeral;
+        this.finalizadoEm = agora;
+        this.statusProcessamento = StatusProcessamento.PROCESSADA;
+        this.mensagemErro = null;
+    }
+
+    public void falhar(String mensagemErro) {
+        if (statusProcessamento != StatusProcessamento.PROCESSANDO) {
+            throw new ConflictException("A análise só pode registrar falha quando estiver PROCESSANDO");
+        }
+        if (mensagemErro == null || mensagemErro.isBlank()) {
+            throw new BusinessException("A mensagem de erro é obrigatória");
+        }
+
+        LocalDateTime agora = LocalDateTime.now();
+        this.statusProcessamento = StatusProcessamento.ERRO;
+        this.finalizadoEm = agora;
+        this.mensagemErro = mensagemErro;
+    }
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Reuniao getReuniao() { return reuniao; }
@@ -43,15 +90,11 @@ public class AnaliseIA {
     public SentimentoGeral getSentimentoGeral() { return sentimentoGeral; }
     public void setSentimentoGeral(SentimentoGeral sentimentoGeral) { this.sentimentoGeral = sentimentoGeral; }
     public StatusProcessamento getStatusProcessamento() { return statusProcessamento; }
-    public void setStatusProcessamento(StatusProcessamento statusProcessamento) { this.statusProcessamento = statusProcessamento; }
     public LocalDateTime getCriacao() { return criacao; }
     public void setCriacao(LocalDateTime criacao) { this.criacao = criacao; }
     public LocalDateTime getIniciadoEm() { return iniciadoEm; }
-    public void setIniciadoEm(LocalDateTime iniciadoEm) { this.iniciadoEm = iniciadoEm; }
     public LocalDateTime getFinalizadoEm() { return finalizadoEm; }
-    public void setFinalizadoEm(LocalDateTime finalizadoEm) { this.finalizadoEm = finalizadoEm; }
     public String getMensagemErro() { return mensagemErro; }
-    public void setMensagemErro(String mensagemErro) { this.mensagemErro = mensagemErro; }
 
     @Override
     public String toString() {

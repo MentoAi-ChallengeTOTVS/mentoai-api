@@ -1,6 +1,5 @@
 package com.mentoai.mentoaiapi.analysis.infrastructure.ai.provider;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -29,6 +28,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.test.json.JsonCompareMode;
 import org.springframework.web.client.RestClient;
 
 class GeminiAiProviderTest {
@@ -43,6 +43,7 @@ class GeminiAiProviderTest {
     void setUp() {
         AiProperties properties = new AiProperties();
         properties.getGemini().setApiKey("gemini-key");
+        properties.getGemini().setPrimaryModel(MODEL);
         RestClient.Builder builder = RestClient.builder().baseUrl(BASE_URL);
         server = MockRestServiceServer.bindTo(builder).build();
         provider = new GeminiAiProvider(builder.build(), properties);
@@ -50,18 +51,41 @@ class GeminiAiProviderTest {
 
     @Test
     void deveGerarJsonEstruturado() {
-        server.expect(requestTo(BASE_URL + "/v1beta/models/" + MODEL + ":generateContent"))
+        server.expect(requestTo(BASE_URL + "/v1beta/interactions"))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(header("x-goog-api-key", "gemini-key"))
-                .andExpect(content().string(containsString("\"systemInstruction\"")))
-                .andExpect(content().string(containsString("\"responseMimeType\":\"application/json\"")))
-                .andExpect(content().string(containsString("\"resumoExecutivo\"")))
+                .andExpect(content().json("""
+                        {
+                          "model": "gemini-primary",
+                          "input": "Retorne somente JSON.\\n\\nDados de entrada (JSON):\\nAnalise a transcrição.",
+                          "response_format": {
+                            "type": "text",
+                            "mime_type": "application/json",
+                            "schema": {
+                              "type": "object",
+                              "properties": {"resumoExecutivo": {"type": "string"}}
+                            }
+                          }
+                        }
+                        """, JsonCompareMode.STRICT))
                 .andRespond(withSuccess(
-                        "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{\\\"resumoExecutivo\\\":\\\"ok\\\"}\"}]}}]}",
+                        """
+                        {
+                          "status": "completed",
+                          "steps": [
+                            {"type": "thought", "content": [{"type": "text", "text": "ignorar"}]},
+                            {"type": "model_output", "content": [
+                              {"type": "text", "text": "{\\\"resumoExecutivo\\\":"},
+                              {"type": "text", "text": "\\\"ok\\\"}"}
+                            ]}
+                          ],
+                          "usage": {"total_tokens": 10}
+                        }
+                        """,
                         MediaType.APPLICATION_JSON
                 ));
 
-        AiResponse response = provider.gerar(request(), MODEL);
+        AiResponse response = provider.gerar(request());
 
         assertEquals("{\"resumoExecutivo\":\"ok\"}", response.content());
         assertEquals("GEMINI", response.provider());
@@ -72,7 +96,7 @@ class GeminiAiProviderTest {
     @ParameterizedTest
     @ValueSource(ints = {429, 500, 502, 503, 504})
     void deveClassificarFalhaHttpTemporariaComoElegivelParaFallback(int status) {
-        server.expect(requestTo(BASE_URL + "/v1beta/models/" + MODEL + ":generateContent"))
+        server.expect(requestTo(BASE_URL + "/v1beta/interactions"))
                 .andRespond(withStatus(HttpStatus.valueOf(status)));
 
         AiProviderException exception = assertThrows(
@@ -87,7 +111,7 @@ class GeminiAiProviderTest {
 
     @Test
     void naoDeveFazerFallbackParaFalhaDeAutenticacao() {
-        server.expect(requestTo(BASE_URL + "/v1beta/models/" + MODEL + ":generateContent"))
+        server.expect(requestTo(BASE_URL + "/v1beta/interactions"))
                 .andRespond(withStatus(HttpStatus.UNAUTHORIZED));
 
         AiProviderException exception = assertThrows(
@@ -102,7 +126,7 @@ class GeminiAiProviderTest {
 
     @Test
     void deveClassificarTimeoutComoElegivelParaFallback() {
-        server.expect(requestTo(BASE_URL + "/v1beta/models/" + MODEL + ":generateContent"))
+        server.expect(requestTo(BASE_URL + "/v1beta/interactions"))
                 .andRespond(withException(new SocketTimeoutException("timeout simulado")));
 
         AiProviderException exception = assertThrows(
@@ -116,7 +140,7 @@ class GeminiAiProviderTest {
 
     @Test
     void deveClassificarFalhaDeConexaoComoElegivelParaFallback() {
-        server.expect(requestTo(BASE_URL + "/v1beta/models/" + MODEL + ":generateContent"))
+        server.expect(requestTo(BASE_URL + "/v1beta/interactions"))
                 .andRespond(withException(new ConnectException("conexão recusada simulada")));
 
         AiProviderException exception = assertThrows(
@@ -130,8 +154,8 @@ class GeminiAiProviderTest {
 
     @Test
     void naoDeveFazerFallbackParaRespostaSemConteudo() {
-        server.expect(requestTo(BASE_URL + "/v1beta/models/" + MODEL + ":generateContent"))
-                .andRespond(withSuccess("{\"candidates\":[]}", MediaType.APPLICATION_JSON));
+        server.expect(requestTo(BASE_URL + "/v1beta/interactions"))
+                .andRespond(withSuccess("{\"status\":\"completed\",\"steps\":[]}", MediaType.APPLICATION_JSON));
 
         AiProviderException exception = assertThrows(
                 AiProviderException.class,
