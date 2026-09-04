@@ -6,6 +6,7 @@ import com.mentoai.mentoaiapi.meeting.infrastructure.persistence.entity.ReuniaoJ
 import com.mentoai.mentoaiapi.meeting.infrastructure.persistence.mapper.TranscricaoPersistenceMapper;
 import com.mentoai.mentoaiapi.meeting.infrastructure.persistence.repository.SpringDataTranscricaoRepository;
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
@@ -40,5 +41,10 @@ public class TranscricaoRepositoryAdapter implements TranscricaoRepository {
     @Override
     public Optional<Transcricao> buscarPorReuniaoId(Long reuniaoId) {
         return repository.findByReuniao_Id(reuniaoId).map(mapper::toDomain);
+    }
+
+    @Override
+    public List<Transcricao> listar() {
+        return repository.findAll().stream().map(mapper::toDomain).toList();
     }
 }

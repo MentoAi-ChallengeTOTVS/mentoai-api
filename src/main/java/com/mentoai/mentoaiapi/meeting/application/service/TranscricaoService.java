@@ -7,6 +7,7 @@ import com.mentoai.mentoaiapi.meeting.domain.repository.TranscricaoRepository;
 import com.mentoai.mentoaiapi.shared.exception.ConflictException;
 import com.mentoai.mentoaiapi.shared.exception.ResourceNotFoundException;
 import java.time.LocalDateTime;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,5 +46,10 @@ public class TranscricaoService {
         return transcricaoRepository.buscarPorReuniaoId(reuniaoId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Transcrição não encontrada para a reunião: " + reuniaoId));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Transcricao> listar() {
+        return transcricaoRepository.listar();
     }
 }
