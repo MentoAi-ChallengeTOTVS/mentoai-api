@@ -1,6 +1,7 @@
 package com.mentoai.mentoaiapi.analysis.application.service;
 
 import com.mentoai.mentoaiapi.analysis.domain.entity.AnaliseIA;
+import com.mentoai.mentoaiapi.analysis.domain.entity.ResumoReuniaoRecente;
 import com.mentoai.mentoaiapi.analysis.domain.enums.SentimentoGeral;
 import com.mentoai.mentoaiapi.analysis.domain.enums.StatusProcessamento;
 import com.mentoai.mentoaiapi.analysis.domain.repository.AnaliseIARepository;
@@ -9,7 +10,9 @@ import com.mentoai.mentoaiapi.meeting.domain.repository.ReuniaoRepository;
 import com.mentoai.mentoaiapi.shared.exception.ConflictException;
 import com.mentoai.mentoaiapi.shared.exception.ResourceNotFoundException;
 import java.time.LocalDateTime;
+import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -60,6 +63,11 @@ public class AnaliseIAService {
     public AnaliseIA buscarPorId(Long id) {
         return analiseRepository.buscarPorId(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Análise não encontrada: " + id));
+    }
+
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
+    public List<ResumoReuniaoRecente> buscarResumosRecentesPorCliente(Long clienteId) {
+        return analiseRepository.buscarResumosRecentesPorCliente(clienteId);
     }
 
     @Transactional(readOnly = true)

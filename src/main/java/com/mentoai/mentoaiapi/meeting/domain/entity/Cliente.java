@@ -9,6 +9,7 @@ public class Cliente {
     private String porte;
     private LocalDateTime criacao;
     private Boolean status;
+    private String resumoContextual;
 
     public Cliente() {
     }
@@ -34,6 +35,8 @@ public class Cliente {
     public void setCriacao(LocalDateTime criacao) { this.criacao = criacao; }
     public Boolean getStatus() { return status; }
     public void setStatus(Boolean status) { this.status = status; }
+    public String getResumoContextual() { return resumoContextual; }
+    public void setResumoContextual(String resumoContextual) { this.resumoContextual = resumoContextual; }
 
     @Override
     public String toString() {

@@ -11,6 +11,8 @@ import com.mentoai.mentoaiapi.meeting.domain.entity.Transcricao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ProcessarAnaliseService {
@@ -22,18 +24,22 @@ public class ProcessarAnaliseService {
     private final TranscricaoService transcricaoService;
     private final GerarAnaliseAiService gerarAnaliseAiService;
     private final FinalizarAnaliseService finalizarAnaliseService;
+    private final ConsolidarContextoClienteService consolidarContextoClienteService;
 
     public ProcessarAnaliseService(
             AnaliseIAService analiseIAService,
             TranscricaoService transcricaoService,
             GerarAnaliseAiService gerarAnaliseAiService,
-            FinalizarAnaliseService finalizarAnaliseService) {
+            FinalizarAnaliseService finalizarAnaliseService,
+            ConsolidarContextoClienteService consolidarContextoClienteService) {
         this.analiseIAService = analiseIAService;
         this.transcricaoService = transcricaoService;
         this.gerarAnaliseAiService = gerarAnaliseAiService;
         this.finalizarAnaliseService = finalizarAnaliseService;
+        this.consolidarContextoClienteService = consolidarContextoClienteService;
     }
 
+    @Transactional(propagation = Propagation.NEVER)
     public AnaliseIA processar(Long analiseId) {
         AnaliseIA analise = analiseIAService.iniciarProcessamento(analiseId);
         AnaliseIA finalizada;
@@ -50,7 +56,16 @@ public class ProcessarAnaliseService {
             finalizada = finalizarAnaliseService.finalizar(analiseId, resultado);
         } catch (RuntimeException falhaOriginal) {
             LOGGER.error("Falha no processamento da análise {}", analiseId, falhaOriginal);
-            return tratarFalha(analiseId, falhaOriginal);
+            finalizada = tratarFalha(analiseId, falhaOriginal);
+        }
+        if (finalizada.getStatusProcessamento() == StatusProcessamento.PROCESSADA) {
+            // O proxy de finalizar() já concluiu o commit. Nunca incluir esta etapa no catch crítico.
+            try {
+                consolidarContextoClienteService.consolidar(finalizada.getReuniao().getCliente().getId(), analiseId);
+            } catch (RuntimeException exception) {
+                // Protege também contra falhas no proxy/interceptadores do pós-processamento.
+                LOGGER.warn("Falha no pós-processamento contextual da análise {}", analiseId, exception);
+            }
         }
         return finalizada;
     }

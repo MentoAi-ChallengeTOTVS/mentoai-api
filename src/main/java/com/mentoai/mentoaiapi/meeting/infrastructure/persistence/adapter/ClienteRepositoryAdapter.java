@@ -38,4 +38,14 @@ public class ClienteRepositoryAdapter implements ClienteRepository {
     public boolean existePorId(Long id) {
         return repository.existsById(id);
     }
+
+    @Override
+    public String buscarResumoContextual(Long id) {
+        return repository.buscarResumoContextual(id);
+    }
+
+    @Override
+    public int atualizarResumoContextual(Long id, String resumoContextual) {
+        return repository.atualizarResumoContextual(id, resumoContextual);
+    }
 }

@@ -10,4 +10,6 @@ public interface ClienteRepository {
     Optional<Cliente> buscarPorId(Long id);
     List<Cliente> listar();
     boolean existePorId(Long id);
+    String buscarResumoContextual(Long id);
+    int atualizarResumoContextual(Long id, String resumoContextual);
 }
