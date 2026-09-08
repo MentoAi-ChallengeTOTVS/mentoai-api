@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
@@ -35,6 +36,10 @@ public class ClienteJpaEntity {
     @Column(name = "STATUS", nullable = false, columnDefinition = "NUMBER(1)")
     private Boolean status;
 
+    @Lob
+    @Column(name = "RESUMO_CONTEXTUAL", columnDefinition = "CLOB")
+    private String resumoContextual;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getNome() { return nome; }
@@ -47,4 +52,6 @@ public class ClienteJpaEntity {
     public void setCriacao(LocalDateTime criacao) { this.criacao = criacao; }
     public Boolean getStatus() { return status; }
     public void setStatus(Boolean status) { this.status = status; }
+    public String getResumoContextual() { return resumoContextual; }
+    public void setResumoContextual(String resumoContextual) { this.resumoContextual = resumoContextual; }
 }

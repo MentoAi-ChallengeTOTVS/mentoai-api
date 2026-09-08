@@ -8,8 +8,10 @@ import org.springframework.stereotype.Component;
 public class ClientePersistenceMapper {
 
     public Cliente toDomain(ClienteJpaEntity entity) {
-        return new Cliente(entity.getId(), entity.getNome(), entity.getSegmento(), entity.getPorte(),
+        Cliente cliente = new Cliente(entity.getId(), entity.getNome(), entity.getSegmento(), entity.getPorte(),
                 entity.getCriacao(), entity.getStatus());
+        cliente.setResumoContextual(entity.getResumoContextual());
+        return cliente;
     }
 
     public ClienteJpaEntity toJpaEntity(Cliente domain) {
@@ -20,6 +22,7 @@ public class ClientePersistenceMapper {
         entity.setPorte(domain.getPorte());
         entity.setCriacao(domain.getCriacao());
         entity.setStatus(domain.getStatus());
+        entity.setResumoContextual(domain.getResumoContextual());
         return entity;
     }
 }

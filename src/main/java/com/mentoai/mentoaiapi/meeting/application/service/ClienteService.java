@@ -6,6 +6,7 @@ import com.mentoai.mentoaiapi.shared.exception.ResourceNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -26,6 +27,21 @@ public class ClienteService {
     public Cliente buscarPorId(Long id) {
         return clienteRepository.buscarPorId(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado: " + id));
+    }
+
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
+    public String buscarResumoContextual(Long id) {
+        return clienteRepository.buscarResumoContextual(id);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void atualizarResumoContextual(Long id, String resumo) {
+        if (resumo == null || resumo.isBlank()) {
+            throw new IllegalArgumentException("O resumo contextual deve conter texto");
+        }
+        if (clienteRepository.atualizarResumoContextual(id, resumo) != 1) {
+            throw new ResourceNotFoundException("Cliente não encontrado: " + id);
+        }
     }
 
     @Transactional(readOnly = true)

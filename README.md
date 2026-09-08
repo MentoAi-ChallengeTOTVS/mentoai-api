@@ -115,6 +115,54 @@ Ao saturar, o executor rejeita a submissão com `AbortPolicy`, sem executar a ta
 
 A fila é local e volátil. Quedas, reinícios ou falhas ao registrar `ERRO` podem deixar análises em `PENDENTE`/`PROCESSANDO` indefinidamente. Não há garantia de retomada ou execução durável, fila externa, scheduler ou retry. Logs de exceção completos devem ser usados com dados fictícios no diagnóstico local, pois podem conter informações sensíveis.
 
+## Memória contextual do cliente
+
+Após o commit de `FinalizarAnaliseService`, o mesmo processamento assíncrono chama
+`ConsolidarContextoClienteService`. A análise já está `PROCESSADA`, com resumo,
+sentimento, insights e sinais persistidos. Não há geração automática de alertas
+conectada a essa finalização atualmente.
+
+A migration `V2__add_resumo_contextual_to_cliente.sql` adiciona
+`CLIENTE.RESUMO_CONTEXTUAL CLOB`, nullable, sem default ou backfill. O primeiro
+resumo será criado na próxima análise concluída do cliente.
+
+A consolidação reutiliza o `AiProvider` ativo (Gemini), com prompt próprio. Envia
+a memória anterior e somente data/resumo executivo de até cinco reuniões do
+cliente: análise `PROCESSADA`, resumo não nulo e com conteúdo não branco,
+ordenadas por `DATA_REUNIAO DESC, REUNIAO.ID DESC`. A filtragem Oracle de CLOB
+ocorre antes do limite e inclui espaços, tabs e quebras de linha. Não carrega
+transcrições ou relacionamentos para essa operação. A resposta deve ser uma
+string JSON não branca, cujo texto substitui a memória anterior integralmente.
+
+O orquestrador e a consolidação usam propagação `NEVER`. As leituras e a escrita
+contextual passam por serviços com transações curtas `REQUIRES_NEW`; nenhuma
+transação permanece aberta durante a chamada à IA. A atualização altera somente
+a coluna contextual. Falhas contextuais são tratadas fora do tratamento crítico
+da análise, inclusive falha no commit da escrita. A memória anterior não é
+apagada antecipadamente; em caso de falha, permanece inalterada ou `NULL`.
+
+Na primeira falha, o log WARN contém **Não foi possível criar o resumo contextual
+do cliente.**, com IDs de cliente e análise; detalhes ficam em DEBUG. O warning
+não usa `MENSAGEM_ERRO` nem alertas comerciais. Não é enviado pela API: o frontend
+ainda usa mocks e o contrato existente não guarda estado do pós-processamento.
+`PROCESSADA` pode ser observado antes de a memória ficar pronta e nunca é
+convertido em erro por falha dessa etapa. Sem reuniões válidas, a IA não é chamada.
+
+Limitações do MVP: duas consolidações simultâneas podem causar lost update;
+alterações concorrentes do cadastro também podem salvar uma cópia anterior da
+memória. Não há lock, retry, fila adicional ou execução durável. Uma queda após
+o commit pode impedir o pós-processamento, e a próxima análise tentará consolidar
+novamente. A chamada adicional ocupa a thread do executor existente.
+
+Os testes usam JUnit/Mockito e proxies transacionais Spring. Para validar a
+consulta nativa e a materialização de CLOB em Oracle, configure
+`ORACLE_TEST_URL`, `ORACLE_TEST_USERNAME` e `ORACLE_TEST_PASSWORD` e execute
+`ResumosRecentesOracleTest`. Esse teste usa apenas CTEs e SELECTs, sem alterar
+tabelas ou aplicar migrations. Sem `ORACLE_TEST_URL`, é explicitamente ignorado.
+A suíte completa (`.\mvnw.cmd test`) também inclui o `contextLoads` original,
+que precisa das variáveis `DB_URL`, `DB_USERNAME` e `DB_PASSWORD` e de Oracle
+disponível; o startup aplica Flyway ao banco configurado. Build: `.\mvnw.cmd package`.
+
 ## Fonte operacional para agentes
 
 As regras de trabalho, escopo, validação e convenções para agentes de código ficam em `AGENTS.md`.
