@@ -1,5 +1,6 @@
 package com.mentoai.mentoaiapi.analysis.presentation.rest.controller;
 
+import com.mentoai.mentoaiapi.analysis.application.dto.AnaliseFilaResponse;
 import com.mentoai.mentoaiapi.analysis.application.service.AnaliseIAService;
 import com.mentoai.mentoaiapi.analysis.application.service.InsightService;
 import com.mentoai.mentoaiapi.analysis.application.service.SinalComercialService;
@@ -42,6 +43,11 @@ public class AnaliseController {
     @GetMapping("/reuniao/{reuniaoId}")
     public ResponseEntity<AnaliseIAResponse> buscarPorReuniao(@PathVariable Long reuniaoId) {
         return ResponseEntity.ok(toResponse(analiseService.buscarPorReuniao(reuniaoId)));
+    }
+
+    @GetMapping("/fila")
+    public ResponseEntity<AnaliseFilaResponse> consultarFila() {
+        return ResponseEntity.ok(analiseService.consultarFila());
     }
 
     private AnaliseIAResponse toResponse(AnaliseIA analise) {
