@@ -10,5 +10,6 @@ public interface AnaliseIARepository {
     AnaliseIA salvar(AnaliseIA analise);
     Optional<AnaliseIA> buscarPorId(Long id);
     Optional<AnaliseIA> buscarPorReuniaoId(Long reuniaoId);
+    List<AnaliseIA> listar();
     List<ResumoReuniaoRecente> buscarResumosRecentesPorCliente(Long clienteId);
 }

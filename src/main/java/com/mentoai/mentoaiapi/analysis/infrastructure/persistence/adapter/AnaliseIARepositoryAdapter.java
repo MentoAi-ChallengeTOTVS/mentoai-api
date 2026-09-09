@@ -59,6 +59,13 @@ public class AnaliseIARepositoryAdapter implements AnaliseIARepository {
     }
 
     @Override
+    public List<AnaliseIA> listar() {
+        return repository.findAllComReuniaoClienteEUsuario().stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public List<ResumoReuniaoRecente> buscarResumosRecentesPorCliente(Long clienteId) {
         // Materializa apenas estes dois escalares; não instancia entidades nem relacionamentos.

@@ -1,5 +1,7 @@
 package com.mentoai.mentoaiapi.analysis.application.service;
 
+import com.mentoai.mentoaiapi.analysis.application.dto.AnaliseFilaItemResponse;
+import com.mentoai.mentoaiapi.analysis.application.dto.AnaliseFilaResponse;
 import com.mentoai.mentoaiapi.analysis.domain.entity.AnaliseIA;
 import com.mentoai.mentoaiapi.analysis.domain.entity.ResumoReuniaoRecente;
 import com.mentoai.mentoaiapi.analysis.domain.enums.SentimentoGeral;
@@ -10,6 +12,8 @@ import com.mentoai.mentoaiapi.meeting.domain.repository.ReuniaoRepository;
 import com.mentoai.mentoaiapi.shared.exception.ConflictException;
 import com.mentoai.mentoaiapi.shared.exception.ResourceNotFoundException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -75,5 +79,42 @@ public class AnaliseIAService {
         return analiseRepository.buscarPorReuniaoId(reuniaoId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Análise não encontrada para a reunião: " + reuniaoId));
+    }
+
+    @Transactional(readOnly = true)
+    public AnaliseFilaResponse consultarFila() {
+        List<AnaliseFilaItemResponse> fila = new ArrayList<>();
+        List<AnaliseFilaItemResponse> finalizados = new ArrayList<>();
+
+        for (AnaliseIA analise : analiseRepository.listar()) {
+            AnaliseFilaItemResponse item = toFilaItem(analise);
+            switch (analise.getStatusProcessamento()) {
+                case PENDENTE, PROCESSANDO -> fila.add(item);
+                case PROCESSADA, ERRO -> finalizados.add(item);
+            }
+        }
+
+        fila.sort(Comparator.comparing(AnaliseFilaItemResponse::criadoEm)
+                .thenComparing(AnaliseFilaItemResponse::analiseId));
+        finalizados.sort(Comparator
+                .comparing(AnaliseFilaItemResponse::finalizadoEm,
+                        Comparator.nullsLast(Comparator.reverseOrder()))
+                .thenComparing(AnaliseFilaItemResponse::analiseId, Comparator.reverseOrder()));
+
+        return new AnaliseFilaResponse(fila, finalizados);
+    }
+
+    private AnaliseFilaItemResponse toFilaItem(AnaliseIA analise) {
+        Reuniao reuniao = analise.getReuniao();
+        return new AnaliseFilaItemResponse(
+                analise.getId(),
+                reuniao.getId(),
+                reuniao.getCliente().getId(),
+                reuniao.getCliente().getNome(),
+                analise.getStatusProcessamento(),
+                analise.getCriacao(),
+                analise.getIniciadoEm(),
+                analise.getFinalizadoEm(),
+                analise.getMensagemErro());
     }
 }
