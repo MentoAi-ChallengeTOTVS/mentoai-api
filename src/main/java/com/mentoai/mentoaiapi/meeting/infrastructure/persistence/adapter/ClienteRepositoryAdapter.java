@@ -1,18 +1,20 @@
 package com.mentoai.mentoaiapi.meeting.infrastructure.persistence.adapter;
 
 import com.mentoai.mentoaiapi.meeting.domain.entity.Cliente;
+import com.mentoai.mentoaiapi.meeting.domain.repository.ClienteFiltro;
 import com.mentoai.mentoaiapi.meeting.domain.repository.ClienteRepository;
+import com.mentoai.mentoaiapi.meeting.domain.repository.Pagina;
+import com.mentoai.mentoaiapi.meeting.infrastructure.persistence.entity.ClienteJpaEntity;
 import com.mentoai.mentoaiapi.meeting.infrastructure.persistence.mapper.ClientePersistenceMapper;
 import com.mentoai.mentoaiapi.meeting.infrastructure.persistence.repository.SpringDataClienteRepository;
-import com.mentoai.mentoaiapi.meeting.domain.repository.ClienteFiltro;
-import com.mentoai.mentoaiapi.meeting.domain.repository.Pagina;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Repository;
+
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Repository;
 
 @Repository
 public class ClienteRepositoryAdapter implements ClienteRepository {
@@ -36,14 +38,14 @@ public class ClienteRepositoryAdapter implements ClienteRepository {
     }
 
     @Override
-    public Pagina<Cliente> listar(ClienteFiltro filtro, int pagina, int tamanho, String ordenarPor,String direcao) 
-    {
-        Sort.Direction direction = "desc".equalsIgnoreCase(direcao)? Sort.Direction.DESC:Sort.Direction.ASC;
-        Pageable pageable = PageRequest.of(pagina,tamanho,Sort.by(direction, ordenarPor));
+    public Pagina<Cliente> listar(ClienteFiltro filtro, int pagina, int tamanho, String ordenarPor, String direcao) {
+        Sort.Direction direction = "desc".equalsIgnoreCase(direcao) ? Sort.Direction.DESC : Sort.Direction.ASC;
 
-        Page<ClienteJpaEntity> resultado =clienteJpaRepository.listarComFiltros(filtro.nome(),filtro.segmento(),filtro.porte(),filtro.status(),pageable);
+        Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by(direction, ordenarPor));
 
-        List<Cliente> clientes = resultado.getContent().stream().map(clientePersistenceMapper::toDomain).toList();
+        Page<ClienteJpaEntity> resultado = repository.listarComFiltros(filtro.nome(), filtro.segmento(), filtro.porte(), filtro.status(), pageable);
+
+        List<Cliente> clientes = resultado.getContent().stream().map(mapper::toDomain).toList();
 
         return new Pagina<>(clientes,resultado.getNumber(),resultado.getSize(),resultado.getTotalElements(),resultado.getTotalPages());
     }
