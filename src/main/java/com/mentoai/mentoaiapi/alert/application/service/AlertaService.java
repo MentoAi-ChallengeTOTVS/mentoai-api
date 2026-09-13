@@ -3,6 +3,8 @@ package com.mentoai.mentoaiapi.alert.application.service;
 import com.mentoai.mentoaiapi.alert.domain.entity.Alerta;
 import com.mentoai.mentoaiapi.alert.domain.repository.AlertaRepository;
 import com.mentoai.mentoaiapi.shared.exception.ResourceNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,5 +33,10 @@ public class AlertaService {
         return alertaRepository.buscarPorSinalComercialId(sinalComercialId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Alerta não encontrado para o sinal comercial: " + sinalComercialId));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Alerta> listar(Pageable pageable) {
+        return alertaRepository.listar(pageable);
     }
 }

@@ -92,19 +92,19 @@ public class ClienteController {
     @GetMapping
     public ResponseEntity<ClientePageResponse> listar(@RequestParam(required = false) @Size(max = 255) String nome,
 
-            @RequestParam(required = false) @Size(max = 100) String segmento,
+                                                      @RequestParam(required = false) @Size(max = 100) String segmento,
 
-            @RequestParam(required = false) @Size(max = 50) String porte,
+                                                      @RequestParam(required = false) @Size(max = 50) String porte,
 
-            @RequestParam(required = false) Boolean status,
+                                                      @RequestParam(required = false) Boolean status,
 
-            @RequestParam(defaultValue = "0") @Min(0) int page,
+                                                      @RequestParam(defaultValue = "0") @Min(0) int page,
 
-            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size,
+                                                      @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size,
 
-            @RequestParam(defaultValue = "nome") String sort,
+                                                      @RequestParam(defaultValue = "nome") String sort,
 
-            @RequestParam(defaultValue = "asc") String direction) {
+                                                      @RequestParam(defaultValue = "asc") String direction) {
 
         ClienteFiltro filtro = new ClienteFiltro(nome, segmento, porte, status);
 
