@@ -1,10 +1,15 @@
 package com.mentoai.mentoaiapi.analysis.application.service;
 
+import com.mentoai.mentoaiapi.alert.application.service.AlertaUsuarioService;
+import com.mentoai.mentoaiapi.alert.domain.entity.Alerta;
+import com.mentoai.mentoaiapi.alert.domain.enums.PrioridadeAlerta;
+import com.mentoai.mentoaiapi.alert.domain.repository.AlertaRepository;
 import com.mentoai.mentoaiapi.analysis.application.dto.ResultadoAnaliseAi;
 import com.mentoai.mentoaiapi.analysis.domain.entity.AnaliseIA;
 import com.mentoai.mentoaiapi.analysis.domain.entity.Insight;
 import com.mentoai.mentoaiapi.analysis.domain.entity.SinalComercial;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,14 +20,20 @@ public class FinalizarAnaliseService {
     private final AnaliseIAService analiseIAService;
     private final InsightService insightService;
     private final SinalComercialService sinalComercialService;
+    private final AlertaRepository alertaRepository;
+    private final AlertaUsuarioService alertaUsuarioService;
 
     public FinalizarAnaliseService(
             AnaliseIAService analiseIAService,
             InsightService insightService,
-            SinalComercialService sinalComercialService) {
+            SinalComercialService sinalComercialService,
+            AlertaRepository alertaRepository,
+            AlertaUsuarioService alertaUsuarioService) {
         this.analiseIAService = analiseIAService;
         this.insightService = insightService;
         this.sinalComercialService = sinalComercialService;
+        this.alertaRepository = alertaRepository;
+        this.alertaUsuarioService = alertaUsuarioService;
     }
 
     @Transactional
@@ -36,11 +47,58 @@ public class FinalizarAnaliseService {
                 .map(insight -> new Insight(
                         null, analise, insight.tipo(), insight.descricao(), insight.severidade(), criacao))
                 .toList());
-        sinalComercialService.salvarTodos(resultado.sinaisComerciais().stream()
-                .map(sinal -> new SinalComercial(
-                        null, analise, sinal.tipo(), sinal.descricao(), sinal.evidencia(), sinal.relevancia(), criacao))
-                .toList());
+
+        List<SinalComercial> sinaisSalvos = sinalComercialService.salvarTodos(
+                resultado.sinaisComerciais().stream()
+                        .map(sinal -> new SinalComercial(
+                                null, analise, sinal.tipo(), sinal.descricao(), sinal.evidencia(), sinal.relevancia(), criacao))
+                        .toList());
+
+        // Geração Automática de Alertas (F04)
+        gerarAlertasAutomaticos(sinaisSalvos, analise);
 
         return analise;
+    }
+
+    private void gerarAlertasAutomaticos(List<SinalComercial> sinais, AnaliseIA analise) {
+        for (SinalComercial sinal : sinais) {
+            // Mapeia a prioridade usando String.valueOf para aceitar qualquer tipo de relevância
+            PrioridadeAlerta prioridade = MapeadorPrioridade.definir(
+                    sinal.getRelevancia() != null ? String.valueOf(sinal.getRelevancia()) : null
+            );
+
+            Alerta alerta = new Alerta(
+                    null,
+                    sinal,
+                    prioridade,
+                    sinal.getDescricao(),
+                    LocalDateTime.now()
+            );
+
+            Alerta alertaSalvo = alertaRepository.salvar(alerta);
+
+            // Vincula ao usuário caso a reunião possua usuário associado
+            Long usuarioId = extrairUsuarioId(analise);
+            if (usuarioId != null) {
+                alertaUsuarioService.registrar(alertaSalvo.getId(), usuarioId);
+            }
+        }
+    }
+
+    private Long extrairUsuarioId(AnaliseIA analise) {
+        if (analise.getReuniao() != null && analise.getReuniao().getUsuario() != null) {
+            return analise.getReuniao().getUsuario().getId();
+        }
+        return null; // ou defina um ID padrão/log de fallback
+    }
+    private static class MapeadorPrioridade {
+        public static PrioridadeAlerta definir(String relevancia) {
+            if (relevancia == null) return PrioridadeAlerta.MEDIA;
+            return switch (relevancia.toUpperCase()) {
+                case "ALTA", "CRITICA", "HIGH" -> PrioridadeAlerta.ALTA;
+                case "BAIXA", "LOW" -> PrioridadeAlerta.BAIXA;
+                default -> PrioridadeAlerta.MEDIA;
+            };
+        }
     }
 }
