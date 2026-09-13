@@ -6,7 +6,14 @@ import com.mentoai.mentoaiapi.user.infrastructure.persistence.mapper.UsuarioPers
 import com.mentoai.mentoaiapi.user.infrastructure.persistence.repository.SpringDataUsuarioRepository;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import com.mentoai.mentoaiapi.user.domain.entity.Usuario;
+
 
 @Repository
 public class UsuarioRepositoryAdapter implements UsuarioRepository {
@@ -33,12 +40,11 @@ public class UsuarioRepositoryAdapter implements UsuarioRepository {
     public Optional<Usuario> buscarPorEmail(String email) {
         return repository.findByEmail(email).map(mapper::toDomain);
     }
-
     @Override
-    public List<Usuario> listar() {
-        return repository.findAll().stream().map(mapper::toDomain).toList();
+    public Page<Usuario> listar(Pageable pageable) {
+        return repository.findAll(pageable)
+                .map(mapper::toDomain);
     }
-
     @Override
     public boolean existePorEmail(String email) {
         return repository.existsByEmail(email);
