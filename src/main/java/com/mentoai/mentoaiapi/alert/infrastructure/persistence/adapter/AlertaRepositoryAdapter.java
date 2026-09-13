@@ -7,6 +7,8 @@ import com.mentoai.mentoaiapi.alert.infrastructure.persistence.repository.Spring
 import com.mentoai.mentoaiapi.analysis.infrastructure.persistence.entity.SinalComercialJpaEntity;
 import jakarta.persistence.EntityManager;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -40,5 +42,10 @@ public class AlertaRepositoryAdapter implements AlertaRepository {
     @Override
     public Optional<Alerta> buscarPorSinalComercialId(Long sinalComercialId) {
         return repository.findBySinalComercial_Id(sinalComercialId).map(mapper::toDomain);
+    }
+
+    @Override
+    public Page<Alerta> listar(Pageable pageable) {
+        return repository.findAll(pageable).map(mapper::toDomain);
     }
 }
