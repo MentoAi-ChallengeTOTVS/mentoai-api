@@ -8,11 +8,12 @@ public class BooleanToIntegerConverter implements AttributeConverter<Boolean, In
 
     @Override
     public Integer convertToDatabaseColumn(Boolean attribute) {
+        if (attribute == null) return null;
         return Boolean.TRUE.equals(attribute) ? 1 : 0;
     }
 
     @Override
     public Boolean convertToEntityAttribute(Integer dbData) {
-        return dbData != null && dbData == 1;
+        return dbData == null ? null : dbData == 1;
     }
 }
