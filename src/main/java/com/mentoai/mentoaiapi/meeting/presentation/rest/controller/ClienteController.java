@@ -2,14 +2,35 @@ package com.mentoai.mentoaiapi.meeting.presentation.rest.controller;
 
 import com.mentoai.mentoaiapi.meeting.application.service.ClienteService;
 import com.mentoai.mentoaiapi.meeting.application.service.ReuniaoService;
+import com.mentoai.mentoaiapi.meeting.domain.entity.Cliente;
+import com.mentoai.mentoaiapi.meeting.domain.repository.ClienteFiltro;
+import com.mentoai.mentoaiapi.meeting.domain.repository.Pagina;
+import com.mentoai.mentoaiapi.meeting.presentation.rest.mapper.ClienteRestMapper;
 import com.mentoai.mentoaiapi.meeting.presentation.rest.mapper.ReuniaoRestMapper;
+import com.mentoai.mentoaiapi.meeting.presentation.rest.request.AlterarStatusClienteRequest;
+import com.mentoai.mentoaiapi.meeting.presentation.rest.request.AtualizarClienteRequest;
+import com.mentoai.mentoaiapi.meeting.presentation.rest.request.CriarClienteRequest;
+import com.mentoai.mentoaiapi.meeting.presentation.rest.response.ClientePageResponse;
+import com.mentoai.mentoaiapi.meeting.presentation.rest.response.ClienteResponse;
 import com.mentoai.mentoaiapi.meeting.presentation.rest.response.ReuniaoResponse;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import java.util.List;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 @RestController
 @Validated
