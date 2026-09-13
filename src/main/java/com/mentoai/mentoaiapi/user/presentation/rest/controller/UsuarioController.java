@@ -13,6 +13,10 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+
 
 @RestController
 @RequestMapping("/api/v1/usuarios")
@@ -50,11 +54,11 @@ public class UsuarioController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UsuarioResponse>> listar() {
-        List<UsuarioResponse> responseList = usuarioService.listar().stream()
-                .map(mapper::toResponse)
-                .toList();
-        return ResponseEntity.ok(responseList);
+    public ResponseEntity<Page<UsuarioResponse>> listar(
+            @PageableDefault(page = 0, size = 10, sort = "nome") Pageable pageable) {
+        Page<UsuarioResponse> responsePage = usuarioService.listar(pageable)
+                .map(mapper::toResponse);
+        return ResponseEntity.ok(responsePage);
     }
 
     @PutMapping("/{id}")

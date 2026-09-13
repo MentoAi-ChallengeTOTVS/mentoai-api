@@ -7,6 +7,9 @@ import com.mentoai.mentoaiapi.user.domain.enums.PerfilUsuario;
 import com.mentoai.mentoaiapi.user.domain.repository.UsuarioRepository;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,8 +38,8 @@ public class UsuarioService {
     }
 
     @Transactional(readOnly = true)
-    public List<Usuario> listar() {
-        return usuarioRepository.listar();
+    public Page<Usuario> listar(Pageable pageable) {
+        return usuarioRepository.listar(pageable);
     }
 
     @Transactional
