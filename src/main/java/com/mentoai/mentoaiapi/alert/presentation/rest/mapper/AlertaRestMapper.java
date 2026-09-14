@@ -14,9 +14,20 @@ public class AlertaRestMapper {
             return null;
         }
         Long sinalId = alerta.getSinalComercial() != null ? alerta.getSinalComercial().getId() : null;
+        Long analiseId = alerta.getSinalComercial() != null
+                && alerta.getSinalComercial().getAnalise() != null
+                ? alerta.getSinalComercial().getAnalise().getId()
+                : null;
+        Long reuniaoId = alerta.getSinalComercial() != null
+                && alerta.getSinalComercial().getAnalise() != null
+                && alerta.getSinalComercial().getAnalise().getReuniao() != null
+                ? alerta.getSinalComercial().getAnalise().getReuniao().getId()
+                : null;
         return new AlertaResponse(
                 alerta.getId(),
                 sinalId,
+                analiseId,
+                reuniaoId,
                 alerta.getPrioridade(),
                 alerta.getMotivo(),
                 alerta.getCriacao()

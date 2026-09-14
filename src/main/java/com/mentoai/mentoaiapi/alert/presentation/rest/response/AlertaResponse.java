@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 public record AlertaResponse(
         Long id,
         Long sinalComercialId,
+        Long analiseId,
+        Long reuniaoId,
         PrioridadeAlerta prioridade,
         String motivo,
         LocalDateTime criacao

@@ -8,14 +8,22 @@ import com.mentoai.mentoaiapi.analysis.application.dto.ResultadoAnaliseAi;
 import com.mentoai.mentoaiapi.analysis.domain.entity.AnaliseIA;
 import com.mentoai.mentoaiapi.analysis.domain.entity.Insight;
 import com.mentoai.mentoaiapi.analysis.domain.entity.SinalComercial;
+import com.mentoai.mentoaiapi.analysis.domain.enums.RelevanciaSinal;
+import com.mentoai.mentoaiapi.analysis.domain.enums.TipoSinalComercial;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class FinalizarAnaliseService {
+
+    private static final Set<TipoSinalComercial> TIPOS_COM_ALERTA = Set.of(
+            TipoSinalComercial.RISCO_CHURN,
+            TipoSinalComercial.CONCORRENCIA,
+            TipoSinalComercial.OBJECAO);
 
     private final AnaliseIAService analiseIAService;
     private final InsightService insightService;
@@ -62,15 +70,14 @@ public class FinalizarAnaliseService {
 
     private void gerarAlertasAutomaticos(List<SinalComercial> sinais, AnaliseIA analise) {
         for (SinalComercial sinal : sinais) {
-            // Mapeia a prioridade usando String.valueOf para aceitar qualquer tipo de relevância
-            PrioridadeAlerta prioridade = MapeadorPrioridade.definir(
-                    sinal.getRelevancia() != null ? String.valueOf(sinal.getRelevancia()) : null
-            );
+            if (!deveGerarAlerta(sinal)) {
+                continue;
+            }
 
             Alerta alerta = new Alerta(
                     null,
                     sinal,
-                    prioridade,
+                    PrioridadeAlerta.ALTA,
                     sinal.getDescricao(),
                     LocalDateTime.now()
             );
@@ -85,20 +92,17 @@ public class FinalizarAnaliseService {
         }
     }
 
+    static boolean deveGerarAlerta(SinalComercial sinal) {
+        return sinal != null
+                && sinal.getRelevancia() == RelevanciaSinal.ALTA
+                && sinal.getTipo() != null
+                && TIPOS_COM_ALERTA.contains(sinal.getTipo());
+    }
+
     private Long extrairUsuarioId(AnaliseIA analise) {
         if (analise.getReuniao() != null && analise.getReuniao().getUsuario() != null) {
             return analise.getReuniao().getUsuario().getId();
         }
         return null; // ou defina um ID padrão/log de fallback
-    }
-    private static class MapeadorPrioridade {
-        public static PrioridadeAlerta definir(String relevancia) {
-            if (relevancia == null) return PrioridadeAlerta.MEDIA;
-            return switch (relevancia.toUpperCase()) {
-                case "ALTA", "CRITICA", "HIGH" -> PrioridadeAlerta.ALTA;
-                case "BAIXA", "LOW" -> PrioridadeAlerta.BAIXA;
-                default -> PrioridadeAlerta.MEDIA;
-            };
-        }
     }
 }
