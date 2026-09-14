@@ -94,14 +94,19 @@ public class EmailService {
     }
 
     @Async
-    public void enviarNotificacaoEquipe(String emailCliente, Integer nota, String comentario) {
+    public void enviarNotificacaoEquipe(String emailCliente, Integer nota, String comentario, String emailCopy) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setFrom(remetente);
             helper.setTo(emailEquipe);
-            helper.setSubject("Novo Feedback Recebido (" + nota + "/5 ⭐) | MentoAI");
+
+            if (emailCopy != null && !emailCopy.isBlank()) {
+                helper.setCc(emailCopy.trim());
+            }
+
+            helper.setSubject("Novo Feedback Recebido (" + nota + "/5) | MentoAI");
 
             String comentarioFormatado = (comentario != null && !comentario.isBlank())
                     ? comentario.replace("\n", "<br>")
@@ -136,7 +141,7 @@ public class EmailService {
                                                 </tr>
                                                 <tr>
                                                     <td style="padding: 8px 0; color: #475569; font-size: 14px;"><strong>Nota:</strong></td>
-                                                    <td style="padding: 8px 0; color: #10b981; font-size: 16px; font-weight: 700;">{{nota}} / 5 ⭐</td>
+                                                    <td style="padding: 8px 0; color: #10b981; font-size: 16px; font-weight: 700;">{{nota}} / 5</td>
                                                 </tr>
                                             </table>
                                             
