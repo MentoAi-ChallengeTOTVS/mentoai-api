@@ -3,7 +3,9 @@ package com.mentoai.mentoaiapi.shared.config;
 import com.mentoai.mentoaiapi.shared.infrastructure.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -20,8 +22,11 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
+        http.cors(Customizer.withDefaults())
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        // Preflight CORS não carrega credenciais e deve chegar ao CorsConfig.
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Endpoint público de autenticação
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         // Apenas DIRETOR_COMERCIAL acessa a gestão de usuários (POST, GET, PUT, PATCH)
