@@ -1,170 +1,272 @@
-# MentoAI API
+# MentoAI — Copiloto Comercial com Inteligência Artificial
 
-Backend do **MentoAI — Copiloto Comercial Consultivo**, desenvolvido para o Challenge TOTVS.
+O MentoAI é um copiloto comercial consultivo que transforma transcrições de reuniões em inteligência estruturada. Ele associa reuniões ao histórico do cliente, identifica sinais comerciais e gera resumo executivo e insights.
 
-O sistema transforma transcrições de reuniões comerciais em inteligência contextualizada para apoiar líderes e executivos comerciais na identificação de riscos, oportunidades, histórico e contexto de clientes.
+A inteligência artificial apoia a análise e a tomada de decisão humana; o MentoAI não toma decisões comerciais autonomamente.
 
-A IA atua como mecanismo de apoio. O sistema não toma decisões comerciais de forma autônoma.
+## Integrantes
 
-## Stack técnica
+| Integrante | RM |
+|---|---:|
+| Pedro Henrique dos Santos | RM564188 |
+| Pedro Cunha Coutinho | RM562191 |
+| Breno Henrique Bortoloti Santos | RM562856 |
+| Thomaz Vasconcelos Mendes | RM564805 |
+| Nicolas Tetsuo Kimura | RM565377 |
 
-Arquitetura alvo do backend:
+- Turma: **2ESPX**
+- Equipe: **Equipe 1**
+- **Challenge FIAP 2026 em parceria com a TOTVS**
 
-- Java 21
-- Spring Boot
-- Spring MVC
-- Jakarta Bean Validation
-- Spring Data JPA
-- Hibernate
-- Oracle Database
-- Flyway
-- Azure OpenAI
+## Estado atual da Sprint 3
 
-## Arquitetura
+### Entregue no backend
 
-O backend é estruturado como um **monólito modular**, organizado pelos bounded contexts:
+- autenticação por e-mail e senha, com JWT;
+- gestão de usuários e clientes;
+- consulta de reuniões e transcrições;
+- upload de transcrição `.txt`, com criação da reunião, transcrição e análise;
+- processamento assíncrono após o commit do upload;
+- integração com a API Google Gemini;
+- geração e persistência de resumo executivo, sentimento, insights e sinais comerciais;
+- consulta de análises e da fila de processamento;
+- geração automática e consulta de alertas, além da marcação como lido;
+- consolidação assíncrona da memória contextual do cliente;
+- envio de feedback por e-mail.
 
-- `meeting`
-- `analysis`
-- `alert`
-- `copilot`
-- `user`
+A fila é local, mantida pelo executor assíncrono da aplicação. Não é uma fila externa ou durável e não possui retomada automática após reinicialização.
 
-Cada contexto segue, quando necessário, a separação:
+### Funcionalidades em evolução
 
-```text
-domain
-application
-infrastructure
-presentation
-```
+- **Copiloto contextual:** possui entidades, persistência e services, mas o `ChatController` ainda não expõe operações HTTP.
+- **Dashboard executivo agregado:** a tela usa mocks.
+- **Busca Global:** existe como componente visual, sem endpoint dedicado.
+- **Visão 360° completa:** cadastro, reuniões e memória contextual existem, mas a experiência permanece parcial.
+- **Alertas no frontend:** a consulta é real, porém o estado de leitura tem integração parcial devido à diferença entre o ID listado e o ID esperado pela operação de leitura.
 
-A abordagem combina DDD e Clean Architecture de forma pragmática, priorizando baixo acoplamento e simplicidade compatível com o MVP.
+## Como o projeto atende à entrega de Java
 
-Veja [ARCHITECTURE.md](docs/ARCHITECTURE.md).
+| Exigência da disciplina | Implementação no MentoAI |
+|---|---|
+| Model | Entidades de domínio e entidades JPA específicas da infraestrutura. |
+| DAO | Domain Repository, `RepositoryAdapter` e Spring Data Repository. |
+| Service | Application Services com casos de uso, regras e transações. |
+| CRUD | Criação, consulta, listagem, atualização e alteração de status em Cliente e Usuário. |
+| API REST | Controllers Spring MVC em `/api/v1/...`, com DTOs de entrada e saída. |
+| Validações | Jakarta Bean Validation e regras nos Services. |
+| Exceções | Exceções compartilhadas e `GlobalExceptionHandler`. |
+| Banco | Oracle Database, JPA/Hibernate e Flyway. |
+| Boas práticas | DDD, responsabilidades separadas, DTOs, mappers, injeção de dependências e transações. |
 
-## Documentação técnica
+### DAO x Repository
 
-- [Arquitetura](docs/ARCHITECTURE.md)
-- [Modelo de Domínio](docs/DOMAIN_MODEL.md)
-- [Banco de Dados](docs/DATABASE.md)
-- [Arquitetura de IA](docs/AI_ARCHITECTURE.md)
-- [Decisões Técnicas](docs/TECHNICAL_DECISIONS.md)
-
-## Princípio de implementação
-
-O projeto deve evoluir preferencialmente por **vertical slices**, implementando um fluxo completo antes de replicar o padrão para os demais contextos.
-
-Exemplo:
-
-```text
-Domain
-→ JpaEntity
-→ PersistenceMapper
-→ SpringDataRepository
-→ RepositoryAdapter
-→ ApplicationService
-→ DTOs
-→ Controller
-→ Tests
-```
-
-## Upload e consulta da análise
-
-`POST /api/v1/transcricoes/upload` mantém o envio multipart e retorna **HTTP 202 Accepted** com os IDs criados e o estado inicial:
-
-```json
-{
-  "reuniaoId": 1,
-  "transcricaoId": 1,
-  "analiseId": 1,
-  "status": "PENDENTE"
-}
-```
-
-`UploadAnaliseService` abre a transação; `UploadTranscricaoService` participa por propagação `REQUIRED`. Reunião, transcrição e análise são commitadas na conclusão da chamada ao orquestrador. O evento `AnaliseSolicitadaEvent`, contendo apenas `analiseId`, é publicado nessa transação e entregue ao listener somente em `AFTER_COMMIT`. Um rollback não dispara o processamento.
-
-O listener usa `@Async("analysisExecutor")` e delega ao processamento existente, sem aguardar o Gemini na thread HTTP:
+A estrutura tradicional da disciplina é:
 
 ```text
-Upload → PENDENTE + evento → COMMIT → submissão async → HTTP 202
-Background → PROCESSANDO → Gemini → PROCESSADA ou ERRO
+Controller → Service → DAO → Banco
 ```
 
-O início e a conclusão/falha mantêm suas transações próprias; a geração da IA ocorre sem transação aberta. Resumo, sentimento, insights e sinais são persistidos atomicamente na finalização. Uma falha nessa etapa não desfaz o upload.
+O MentoAI utiliza:
 
-As consultas somente leitura são:
+```text
+Controller → Application Service → Domain Repository
+→ Repository Adapter → Spring Data Repository → Oracle Database
+```
 
-- `GET /api/v1/analises/{id}`;
-- `GET /api/v1/analises/reuniao/{reuniaoId}`.
+Não existe uma classe `ClienteDAO`, mas a responsabilidade de acesso a dados não foi removida. O contrato `ClienteRepository` é implementado pelo `ClienteRepositoryAdapter`, que delega ao `SpringDataClienteRepository`. O adapter cumpre, neste contexto, a responsabilidade de persistência atribuída ao DAO tradicional.
 
-Retornam `200`, ou `404` quando a análise não existe. A resposta preserva os campos da análise, incluindo `statusProcessamento`, resumo, sentimento, datas e mensagem de erro. Em `PROCESSADA`, inclui `insights` e `sinaisComerciais` persistidos; nos demais estados, essas coleções são arrays vazios, nunca `null`.
+Repository e DAO não são literalmente o mesmo padrão. O Repository mantém o domínio desacoplado da tecnologia de persistência e acompanha a arquitetura DDD adotada:
 
-O frontend pode consultar enquanto o estado for `PENDENTE` ou `PROCESSANDO` e parar em `PROCESSADA` ou `ERRO`. O `PENDENTE` do POST é o estado inicial criado: o background pode começar antes de o cliente receber a resposta, e o primeiro GET já pode observar um estado mais avançado, inclusive final. Não há polling no servidor, endpoint público para alterar status ou retomada automática.
+```text
+ClienteController → ClienteService → ClienteRepository
+→ ClienteRepositoryAdapter → SpringDataClienteRepository → Oracle Database
+```
 
-### Executor e limitações do MVP
+## CRUD e exclusão lógica
 
-O pool `analysisExecutor` é fixo (`corePoolSize = maxPoolSize`) e usa threads `analysis-*`. As propriedades de `application.yml` são:
+Cliente possui operações para criar, listar com filtros e paginação, buscar por ID, atualizar, alterar status e consultar reuniões vinculadas. Usuário possui criação, listagem paginada, consulta, atualização e alteração do campo `ativo`.
 
-- `mentoai.analysis.async.pool-size`: padrão conservador de `2`, substituível por `ANALYSIS_ASYNC_POOL_SIZE`;
-- `mentoai.analysis.async.queue-capacity`: padrão conservador de `50`, substituível por `ANALYSIS_ASYNC_QUEUE_CAPACITY`.
+Não há endpoint de exclusão física para Cliente ou Usuário. Em determinadas entidades, a operação equivalente ao Delete do CRUD é realizada por alteração de status, preservando histórico e relacionamentos do banco.
 
-Ambos os valores devem ser positivos. Em Docker, variáveis personalizadas precisam ser passadas ao ambiente do container; apenas declará-las no `.env` do Compose não as encaminha automaticamente. Alterações Java ou no YAML empacotado exigem reconstruir a imagem.
+## Arquitetura do backend
 
-Ao saturar, o executor rejeita a submissão com `AbortPolicy`, sem executar a tarefa na thread HTTP. A rejeição após o commit é registrada pelos logs do Spring; o POST mantém `202` e a análise rejeitada fica `PENDENTE`, sem nova tentativa automática. Exceções não tratadas no background também são registradas pelo Spring; as falhas tratadas pelo processador mantêm a mensagem segura no banco.
+O backend é um monólito modular organizado por bounded contexts:
 
-A fila é local e volátil. Quedas, reinícios ou falhas ao registrar `ERRO` podem deixar análises em `PENDENTE`/`PROCESSANDO` indefinidamente. Não há garantia de retomada ou execução durável, fila externa, scheduler ou retry. Logs de exceção completos devem ser usados com dados fictícios no diagnóstico local, pois podem conter informações sensíveis.
+```text
+presentation    → Controllers REST e contratos HTTP
+application     → Services e casos de uso
+domain          → entidades, enums e interfaces de Repository
+infrastructure  → JPA, adapters, mappers e integrações externas
+shared          → configurações, segurança e tratamento transversal
+```
 
-## Memória contextual do cliente
+Contextos existentes:
 
-Após o commit de `FinalizarAnaliseService`, o mesmo processamento assíncrono chama
-`ConsolidarContextoClienteService`. A análise já está `PROCESSADA`, com resumo,
-sentimento, insights e sinais persistidos. Não há geração automática de alertas
-conectada a essa finalização atualmente.
+- `meeting` — clientes, reuniões e transcrições;
+- `analysis` — análises, insights e sinais comerciais;
+- `alert` — alertas e leitura por usuário;
+- `copilot` — chats e perguntas, ainda sem API funcional;
+- `user` — autenticação, usuários e perfis;
+- `feedback` — recebimento e encaminhamento de feedback.
 
-A migration `V2__add_resumo_contextual_to_cliente.sql` adiciona
-`CLIENTE.RESUMO_CONTEXTUAL CLOB`, nullable, sem default ou backfill. O primeiro
-resumo será criado na próxima análise concluída do cliente.
+`shared` é a área transversal, não um bounded context de negócio.
 
-A consolidação reutiliza o `AiProvider` ativo (Gemini), com prompt próprio. Envia
-a memória anterior e somente data/resumo executivo de até cinco reuniões do
-cliente: análise `PROCESSADA`, resumo não nulo e com conteúdo não branco,
-ordenadas por `DATA_REUNIAO DESC, REUNIAO.ID DESC`. A filtragem Oracle de CLOB
-ocorre antes do limite e inclui espaços, tabs e quebras de linha. Não carrega
-transcrições ou relacionamentos para essa operação. A resposta deve ser uma
-string JSON não branca, cujo texto substitui a memória anterior integralmente.
+## Stack
 
-O orquestrador e a consolidação usam propagação `NEVER`. As leituras e a escrita
-contextual passam por serviços com transações curtas `REQUIRES_NEW`; nenhuma
-transação permanece aberta durante a chamada à IA. A atualização altera somente
-a coluna contextual. Falhas contextuais são tratadas fora do tratamento crítico
-da análise, inclusive falha no commit da escrita. A memória anterior não é
-apagada antecipadamente; em caso de falha, permanece inalterada ou `NULL`.
+| Área | Tecnologias confirmadas |
+|---|---|
+| Backend | Java 21, Spring Boot 4.0.6, Spring MVC, Spring Security/JWT, Bean Validation, Spring Data JPA, Hibernate e Flyway |
+| Banco | Oracle Database |
+| IA | Google Gemini API |
+| Frontend | Next.js 16.3.2, React 19.2.8, TypeScript 5 e Tailwind CSS 4 |
+| Infraestrutura | Docker, Docker Compose e Oracle Cloud |
 
-Na primeira falha, o log WARN contém **Não foi possível criar o resumo contextual
-do cliente.**, com IDs de cliente e análise; detalhes ficam em DEBUG. O warning
-não usa `MENSAGEM_ERRO` nem alertas comerciais. Não é enviado pela API: o frontend
-ainda usa mocks e o contrato existente não guarda estado do pós-processamento.
-`PROCESSADA` pode ser observado antes de a memória ficar pronta e nunca é
-convertido em erro por falha dessa etapa. Sem reuniões válidas, a IA não é chamada.
+## Estrutura do pacote de avaliação
 
-Limitações do MVP: duas consolidações simultâneas podem causar lost update;
-alterações concorrentes do cadastro também podem salvar uma cópia anterior da
-memória. Não há lock, retry, fila adicional ou execução durável. Uma queda após
-o commit pode impedir o pós-processamento, e a próxima análise tentará consolidar
-novamente. A chamada adicional ocupa a thread do executor existente.
+A entrega deve ser extraída mantendo os três projetos como diretórios irmãos:
 
-Os testes usam JUnit/Mockito e proxies transacionais Spring. Para validar a
-consulta nativa e a materialização de CLOB em Oracle, configure
-`ORACLE_TEST_URL`, `ORACLE_TEST_USERNAME` e `ORACLE_TEST_PASSWORD` e execute
-`ResumosRecentesOracleTest`. Esse teste usa apenas CTEs e SELECTs, sem alterar
-tabelas ou aplicar migrations. Sem `ORACLE_TEST_URL`, é explicitamente ignorado.
-A suíte completa (`.\mvnw.cmd test`) também inclui o `contextLoads` original,
-que precisa das variáveis `DB_URL`, `DB_USERNAME` e `DB_PASSWORD` e de Oracle
-disponível; o startup aplica Flyway ao banco configurado. Build: `.\mvnw.cmd package`.
+```text
+MentoAI-Sprint3/
+├── mentoai-api/
+├── mentoai-frontend/
+└── mentoai-infra/
+```
 
-## Fonte operacional para agentes
+Essa é a organização do pacote entregue, não uma estrutura interna do repositório da API. O `mentoai-infra/docker-compose.yaml` usa os caminhos relativos `../mentoai-api` e `../mentoai-frontend`; portanto, a estrutura deve ser preservada.
 
-As regras de trabalho, escopo, validação e convenções para agentes de código ficam em `AGENTS.md`.
+## Pré-requisitos para avaliar a entrega
 
-Este README apresenta o projeto. Ele não substitui `AGENTS.md` nem a documentação técnica específica.
+- Docker Desktop instalado e em execução;
+- conexão com a internet.
+
+O Oracle já está hospedado na Oracle Cloud. A execução via Docker não exige Oracle, Java, Maven, Node.js ou npm instalados localmente.
+
+## Configuração fornecida na entrega
+
+O diretório `mentoai-infra` contém `.env`, wallet Oracle em `wallet/` e `docker-compose.yaml`, já configurados para a avaliação. O professor não precisa alterá-los. Este README não exibe credenciais, chaves ou segredos.
+
+O Compose encaminha ao backend:
+
+- `DB_URL`, `DB_USERNAME` e `DB_PASSWORD`;
+- `GMAIL_USERNAME`, `GMAIL_PASSWORD` e `FEEDBACK_RECIPIENT_EMAIL`;
+- `GEMINI_API_KEY` e `GROQ_API_KEY`;
+- `CORS_ALLOWED_ORIGINS`.
+
+`BACKEND_PORT` e `FRONTEND_PORT` controlam as portas externas, com padrões `8080` e `3000`. O build do frontend recebe `NEXT_PUBLIC_API_URL`, e seu container recebe `API_INTERNAL_URL`.
+
+## Oracle Cloud e Wallet
+
+O Oracle Database não roda em container nesta entrega. O backend conecta ao banco remoto usando as variáveis de banco. A wallet de `mentoai-infra/wallet` é montada em `/app/wallet` no container do backend, em modo somente leitura (`ro`), conforme o Compose.
+
+Não é necessário criar outra wallet nem instalar Oracle local para avaliar a Sprint 3.
+
+## Gemini / Google AI Studio
+
+`GEMINI_API_KEY` é passada ao backend pelo Compose e já estará preenchida no `.env` da avaliação. A integração processa a transcrição e produz resumo executivo, sentimento, insights, sinais comerciais e evidências. Depois da análise, a mesma abstração de IA apoia a consolidação do contexto do cliente. Não é necessário criar uma chave nova.
+
+## Como executar
+
+1. Extraia o ZIP preservando a estrutura dos três projetos.
+2. Abra o Docker Desktop.
+3. Abra um terminal em `mentoai-infra`.
+4. Execute:
+
+```bash
+docker compose up --build
+```
+
+5. Aguarde backend e frontend iniciarem.
+6. Acesse:
+
+- Frontend: <http://localhost:3000>
+- Backend: <http://localhost:8080>
+
+Para encerrar:
+
+```bash
+docker compose down
+```
+
+## O que o Docker Compose inicia
+
+- frontend Next.js;
+- backend Spring Boot.
+
+O Oracle é remoto e não sobe no Compose.
+
+## Fluxo recomendado para avaliação
+
+1. Acesse o frontend.
+2. Faça login com um usuário disponibilizado pela equipe no ambiente de avaliação.
+3. Consulte ou cadastre um cliente.
+4. Acesse **Nova Reunião**.
+5. Selecione o cliente e informe data, horário e duração.
+6. Envie uma transcrição `.txt` UTF-8, não vazia e com até 1 MiB.
+7. Confirme o envio e abra a fila.
+8. Acompanhe os estados `PENDENTE` e `PROCESSANDO`.
+9. Ao chegar a `PROCESSADA`, abra o detalhe da reunião.
+10. Consulte resumo executivo, insights, sinais comerciais e evidências.
+
+Nesta Sprint, o formulário envia temporariamente `usuarioId = 1`; esse usuário deve existir no banco do pacote. Credenciais não são publicadas no README e devem ser fornecidas pela equipe em meio seguro.
+
+## Endpoints principais
+
+Exceto a autenticação, as rotas exigem JWT. A gestão de usuários exige perfil `DIRETOR_COMERCIAL`.
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| `POST` | `/api/v1/auth/login` | Autentica e retorna JWT. |
+| `POST` / `GET` | `/api/v1/usuarios` | Cria ou lista usuários. |
+| `GET` / `PUT` | `/api/v1/usuarios/{id}` | Consulta ou atualiza um usuário. |
+| `PATCH` | `/api/v1/usuarios/{id}/status` | Altera o status do usuário. |
+| `POST` / `GET` | `/api/v1/clientes` | Cria ou lista clientes. |
+| `GET` / `PUT` | `/api/v1/clientes/{id}` | Consulta ou atualiza um cliente. |
+| `PATCH` | `/api/v1/clientes/{id}/status` | Altera o status do cliente. |
+| `GET` | `/api/v1/clientes/{id}/reunioes` | Lista reuniões do cliente. |
+| `GET` | `/api/v1/reunioes` | Lista reuniões. |
+| `GET` | `/api/v1/reunioes/{id}` | Consulta uma reunião. |
+| `GET` | `/api/v1/reunioes/{id}/transcricao` | Consulta sua transcrição. |
+| `GET` | `/api/v1/transcricoes` | Lista transcrições. |
+| `GET` | `/api/v1/transcricoes/{id}` | Consulta uma transcrição. |
+| `POST` | `/api/v1/transcricoes/upload` | Envia arquivo e inicia a análise. |
+| `GET` | `/api/v1/analises/{id}` | Consulta uma análise. |
+| `GET` | `/api/v1/analises/reuniao/{reuniaoId}` | Consulta por reunião. |
+| `GET` | `/api/v1/analises/fila` | Consulta fila e finalizados. |
+| `GET` | `/api/v1/alertas` | Lista alertas. |
+| `GET` | `/api/v1/alertas/{id}` | Consulta um alerta. |
+| `PATCH` | `/api/v1/alertas/{id}/lido` | Marca o vínculo de alerta como lido. |
+
+Não existem endpoints funcionais de Dashboard, Busca Global ou Copiloto nesta Sprint.
+
+## Integração com o frontend e mocks
+
+O frontend concentra o acesso a dados em `src/services`, permitindo substituir mocks por endpoints sem reestruturar toda a UI. Login, clientes, usuários, reuniões, upload, fila, detalhe da análise e consulta de alertas usam a API real.
+
+Dashboard e Copiloto ainda usam mocks. A Visão 360° permanece parcial, e a leitura de alertas possui a limitação descrita anteriormente. Portanto, o frontend ainda não está 100% integrado.
+
+## Principal fluxo funcional desta Sprint
+
+```text
+Upload
+→ criação de reunião, transcrição e análise PENDENTE
+→ commit e evento assíncrono
+→ status PROCESSANDO
+→ Gemini e validação da resposta
+→ persistência de resumo, sentimento, insights e sinais
+→ geração de alertas elegíveis
+→ status PROCESSADA
+→ consolidação da memória contextual
+→ consulta do resultado
+```
+
+Uma falha principal pode marcar a análise como `ERRO`. Falha posterior no contexto não desfaz a análise concluída.
+
+## Testes
+
+Há testes unitários e de integração com JUnit, Mockito e Spring. A suíte completa inicializa o contexto e depende de `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` e Oracle acessível, com Flyway habilitado.
+
+O teste Oracle de resumos recentes utiliza `ORACLE_TEST_URL`, `ORACLE_TEST_USERNAME` e `ORACLE_TEST_PASSWORD`; sem `ORACLE_TEST_URL`, ele é ignorado. Assim, não há execução obrigatória da suíte pelo professor sem configuração adicional. No pacote Docker, o foco é o fluxo funcional.
+
+## Observações finais da Sprint 3
+
+Este README descreve o estado da Sprint 3. Algumas experiências agregadas e o Copiloto permanecem em evolução. O foco é demonstrar arquitetura Java, persistência, API REST e o fluxo principal de análise.
