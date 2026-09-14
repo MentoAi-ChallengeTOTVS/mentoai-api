@@ -23,7 +23,12 @@ public class FeedbackController {
             Authentication authentication) {
 
         String usuarioEmail = authentication.getName();
-        feedbackService.processarFeedback(request.nota(), request.comentario(), usuarioEmail);
+        feedbackService.processarFeedback(
+                request.nota(),
+                request.comentario(),
+                usuarioEmail,
+                request.emailCopy()
+        );
 
         return ResponseEntity.ok().build();
     }

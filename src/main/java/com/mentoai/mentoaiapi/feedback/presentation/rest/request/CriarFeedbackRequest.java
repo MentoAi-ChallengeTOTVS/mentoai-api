@@ -1,9 +1,9 @@
 package com.mentoai.mentoaiapi.feedback.presentation.rest.request;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 
 public record CriarFeedbackRequest(
         @NotNull(message = "A nota é obrigatória")
@@ -11,6 +11,8 @@ public record CriarFeedbackRequest(
         @Max(value = 5, message = "A nota máxima é 5")
         Integer nota,
 
-        @Size(max = 1000, message = "O comentário deve ter no máximo 1000 caracteres")
-        String comentario
+        String comentario,
+
+        @Email(message = "E-mail de cópia inválido")
+        String emailCopy
 ) {}
