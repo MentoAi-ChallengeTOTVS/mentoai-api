@@ -8,6 +8,7 @@ public record ClienteResponse(
         String segmento,
         String porte,
         LocalDateTime criacao,
-        Boolean status
+        Boolean status,
+        String resumoContextual
 ) {
 }

@@ -9,6 +9,6 @@ public class ClienteRestMapper {
 
     public ClienteResponse toResponse(Cliente cliente) {
         return new ClienteResponse(cliente.getId(), cliente.getNome(), cliente.getSegmento(), cliente.getPorte(),
-                cliente.getCriacao(), cliente.getStatus());
+                cliente.getCriacao(), cliente.getStatus(), cliente.getResumoContextual());
     }
 }
