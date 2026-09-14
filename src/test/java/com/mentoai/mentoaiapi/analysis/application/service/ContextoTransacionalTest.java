@@ -11,6 +11,8 @@ import com.mentoai.mentoaiapi.analysis.application.port.ai.AiResponse;
 import com.mentoai.mentoaiapi.analysis.domain.entity.*;
 import com.mentoai.mentoaiapi.analysis.domain.enums.*;
 import com.mentoai.mentoaiapi.analysis.domain.repository.*;
+import com.mentoai.mentoaiapi.alert.application.service.AlertaUsuarioService;
+import com.mentoai.mentoaiapi.alert.domain.repository.AlertaRepository;
 import com.mentoai.mentoaiapi.meeting.application.service.*;
 import com.mentoai.mentoaiapi.meeting.domain.entity.*;
 import com.mentoai.mentoaiapi.meeting.domain.repository.*;
@@ -36,6 +38,8 @@ class ContextoTransacionalTest {
     private final ClienteRepository clientes = mock(ClienteRepository.class);
     private final InsightRepository insights = mock(InsightRepository.class);
     private final SinalComercialRepository sinais = mock(SinalComercialRepository.class);
+    private final AlertaRepository alertas = mock(AlertaRepository.class);
+    private final AlertaUsuarioService alertasUsuarios = mock(AlertaUsuarioService.class);
     private final AiProvider provider = mock(AiProvider.class);
     private final List<Connection> connections = new ArrayList<>();
     private DataSourceTransactionManager tx;
@@ -88,7 +92,8 @@ class ContextoTransacionalTest {
         });
         AnaliseIAService analiseService = proxy(new AnaliseIAService(analises, mock(ReuniaoRepository.class)));
         var finalizador = proxy(new FinalizarAnaliseService(analiseService,
-                proxy(new InsightService(insights)), proxy(new SinalComercialService(sinais))));
+                proxy(new InsightService(insights)), proxy(new SinalComercialService(sinais)),
+                alertas, alertasUsuarios));
         var contexto = proxy(new ConsolidarContextoClienteService(proxy(new ClienteService(clientes)),
                 analiseService, provider, new ResumoContextualPrompt()));
         TranscricaoService transcricoes = mock(TranscricaoService.class);
