@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Primary;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -19,6 +20,7 @@ import org.springframework.web.client.RestClientResponseException;
 import tools.jackson.databind.JsonNode;
 
 @Component
+@Primary
 public class GeminiAiProvider implements AiProvider {
 
     static final String PROVIDER = "GEMINI";

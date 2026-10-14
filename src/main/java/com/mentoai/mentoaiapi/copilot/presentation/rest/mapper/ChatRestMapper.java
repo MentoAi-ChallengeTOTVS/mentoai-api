@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 public class ChatRestMapper {
 
     public ChatResponse toResponse(Chat chat) {
-        return new ChatResponse(chat.getId(), chat.getTitulo(), chat.getUsuario().getId(), chat.getCriacao());
+        return new ChatResponse(chat.getId(), chat.getTitulo(),
+                chat.getCliente() == null ? null : chat.getCliente().getId(),
+                chat.getCliente() == null ? null : chat.getCliente().getNome(), chat.getCriacao());
     }
 }

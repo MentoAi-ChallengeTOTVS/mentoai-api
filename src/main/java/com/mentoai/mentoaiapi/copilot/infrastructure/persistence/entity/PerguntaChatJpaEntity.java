@@ -11,6 +11,9 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import com.mentoai.mentoaiapi.copilot.domain.enums.IntencaoCopiloto;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 
 @Entity
 @Table(name = "PERGUNTA_CHAT")
@@ -33,6 +36,14 @@ public class PerguntaChatJpaEntity {
     @Column(name = "RESPOSTA", columnDefinition = "CLOB")
     private String resposta;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "INTENCAO", length = 30)
+    private IntencaoCopiloto intencao;
+
+    @Lob
+    @Column(name = "FONTES_JSON", columnDefinition = "CLOB")
+    private String fontesJson;
+
     @Column(name = "CRIACAO", nullable = false)
     private LocalDateTime criacao;
 
@@ -44,6 +55,10 @@ public class PerguntaChatJpaEntity {
     public void setPergunta(String pergunta) { this.pergunta = pergunta; }
     public String getResposta() { return resposta; }
     public void setResposta(String resposta) { this.resposta = resposta; }
+    public IntencaoCopiloto getIntencao() { return intencao; }
+    public void setIntencao(IntencaoCopiloto intencao) { this.intencao = intencao; }
+    public String getFontesJson() { return fontesJson; }
+    public void setFontesJson(String fontesJson) { this.fontesJson = fontesJson; }
     public LocalDateTime getCriacao() { return criacao; }
     public void setCriacao(LocalDateTime criacao) { this.criacao = criacao; }
 }

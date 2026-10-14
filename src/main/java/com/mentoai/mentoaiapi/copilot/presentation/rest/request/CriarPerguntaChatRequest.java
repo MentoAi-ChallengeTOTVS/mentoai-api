@@ -1,10 +1,9 @@
 package com.mentoai.mentoaiapi.copilot.presentation.rest.request;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 public record CriarPerguntaChatRequest(
-        @NotNull Long chatId,
-        @NotBlank String pergunta
+        @NotBlank @Size(max = 4000) String pergunta
 ) {
 }

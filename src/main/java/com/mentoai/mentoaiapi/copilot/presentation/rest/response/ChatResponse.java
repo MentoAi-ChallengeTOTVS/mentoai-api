@@ -5,7 +5,8 @@ import java.time.LocalDateTime;
 public record ChatResponse(
         Long id,
         String titulo,
-        Long usuarioId,
+        Long clienteId,
+        String clienteNome,
         LocalDateTime criacao
 ) {
 }

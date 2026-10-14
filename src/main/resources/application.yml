@@ -36,6 +36,14 @@ spring:
             enable: true
 
 mentoai:
+  copilot:
+    context:
+      reunioes: ${COPILOT_CONTEXT_REUNIOES:5}
+      insights: ${COPILOT_CONTEXT_INSIGHTS:5}
+      sinais: ${COPILOT_CONTEXT_SINAIS:8}
+      alertas: ${COPILOT_CONTEXT_ALERTAS:5}
+      historico: ${COPILOT_CONTEXT_HISTORICO:6}
+      tamanho-campo: ${COPILOT_CONTEXT_TAMANHO_CAMPO:1200}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
 

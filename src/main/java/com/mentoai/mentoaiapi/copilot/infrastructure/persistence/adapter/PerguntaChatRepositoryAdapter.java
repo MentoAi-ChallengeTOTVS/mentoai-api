@@ -7,8 +7,12 @@ import com.mentoai.mentoaiapi.copilot.infrastructure.persistence.mapper.Pergunta
 import com.mentoai.mentoaiapi.copilot.infrastructure.persistence.repository.SpringDataPerguntaChatRepository;
 import jakarta.persistence.EntityManager;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import java.util.Collections;
 
 @Repository
 public class PerguntaChatRepositoryAdapter implements PerguntaChatRepository {
@@ -33,12 +37,16 @@ public class PerguntaChatRepositoryAdapter implements PerguntaChatRepository {
     }
 
     @Override
-    public Optional<PerguntaChat> buscarPorId(Long id) {
-        return repository.findById(id).map(mapper::toDomain);
+    public Page<PerguntaChat> listarPorChatId(Long chatId, Pageable pageable) {
+        return repository.findByChat_Id(chatId, pageable).map(mapper::toDomain);
     }
 
     @Override
-    public List<PerguntaChat> buscarPorChatId(Long chatId) {
-        return repository.findByChat_Id(chatId).stream().map(mapper::toDomain).toList();
+    public List<PerguntaChat> buscarHistoricoRecente(Long chatId, int limite) {
+        Pageable pageable = PageRequest.of(0, limite, Sort.by(Sort.Order.desc("criacao"), Sort.Order.desc("id")));
+        List<PerguntaChat> recentes = new java.util.ArrayList<>(repository
+                .findByChat_IdAndRespostaIsNotNull(chatId, pageable).stream().map(mapper::toDomain).toList());
+        Collections.reverse(recentes);
+        return recentes;
     }
 }

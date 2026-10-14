@@ -1,6 +1,7 @@
 package com.mentoai.mentoaiapi.copilot.infrastructure.persistence.entity;
 
 import com.mentoai.mentoaiapi.user.infrastructure.persistence.entity.UsuarioJpaEntity;
+import com.mentoai.mentoaiapi.meeting.infrastructure.persistence.entity.ClienteJpaEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -25,6 +26,10 @@ public class ChatJpaEntity {
     @JoinColumn(name = "USUARIO_ID", nullable = false)
     private UsuarioJpaEntity usuario;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "CLIENTE_ID")
+    private ClienteJpaEntity cliente;
+
     @Column(name = "TITULO", nullable = false, length = 255)
     private String titulo;
 
@@ -35,6 +40,8 @@ public class ChatJpaEntity {
     public void setId(Long id) { this.id = id; }
     public UsuarioJpaEntity getUsuario() { return usuario; }
     public void setUsuario(UsuarioJpaEntity usuario) { this.usuario = usuario; }
+    public ClienteJpaEntity getCliente() { return cliente; }
+    public void setCliente(ClienteJpaEntity cliente) { this.cliente = cliente; }
     public String getTitulo() { return titulo; }
     public void setTitulo(String titulo) { this.titulo = titulo; }
     public LocalDateTime getCriacao() { return criacao; }

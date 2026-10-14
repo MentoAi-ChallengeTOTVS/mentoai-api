@@ -1,0 +1,112 @@
+{
+  "info": {
+    "_postman_id": "c76e6f66-c2ee-4a31-bcb0-148d7cd29155",
+    "name": "MentoAI — Copiloto Comercial",
+    "description": "Collection para testar a API do Copiloto Comercial. Configure baseUrl, token e clienteId nas variáveis da collection ou selecione o environment MentoAI Local.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "clienteId", "value": "15", "type": "string" },
+    { "key": "chatId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Criar chat",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"Análise comercial do cliente\",\n  \"clienteId\": {{clienteId}}\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/api/v1/copilot/chats",
+        "description": "Cria um chat para o cliente informado. O teste salva automaticamente o id retornado na variável chatId."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Chat criado (201)', function () { pm.response.to.have.status(201); });",
+              "if (pm.response.code === 201) {",
+              "  const data = pm.response.json();",
+              "  if (data.id !== undefined) pm.collectionVariables.set('chatId', String(data.id));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Listar chats",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/copilot/chats?page=0&size=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "copilot", "chats"],
+          "query": [
+            { "key": "page", "value": "0" },
+            { "key": "size", "value": "10" }
+          ]
+        },
+        "description": "Lista os chats do usuário autenticado. Ajuste page e size conforme necessário."
+      }
+    },
+    {
+      "name": "Detalhar chat e histórico",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/copilot/chats/{{chatId}}?page=0&size=20",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "copilot", "chats", "{{chatId}}"],
+          "query": [
+            { "key": "page", "value": "0" },
+            { "key": "size", "value": "20" }
+          ]
+        },
+        "description": "Retorna os dados do chat e uma página de mensagens. Use o chatId salvo ao criar o chat ou informe outro nas variáveis."
+      }
+    },
+    {
+      "name": "Enviar pergunta",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"pergunta\": \"Quais foram os principais riscos identificados nas reuniões desse cliente?\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": "{{baseUrl}}/api/v1/copilot/chats/{{chatId}}/messages",
+        "description": "Envia uma pergunta. O contexto comercial é recuperado pelo backend; não envie contexto no request."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": ["pm.test('Interação criada (201)', function () { pm.response.to.have.status(201); });"]
+          }
+        }
+      ]
+    }
+  ]
+}
