@@ -6,19 +6,19 @@ A inteligência artificial apoia a análise e a tomada de decisão humana; o Men
 
 ## Integrantes
 
-| Integrante | RM |
-|---|---:|
-| Pedro Henrique dos Santos | RM564188 |
-| Pedro Cunha Coutinho | RM562191 |
+| Integrante                      |       RM |
+| ------------------------------- | -------: |
+| Pedro Henrique dos Santos       | RM564188 |
+| Pedro Cunha Coutinho            | RM562191 |
 | Breno Henrique Bortoloti Santos | RM562856 |
-| Thomaz Vasconcelos Mendes | RM564805 |
-| Nicolas Tetsuo Kimura | RM565377 |
+| Thomaz Vasconcelos Mendes       | RM564805 |
+| Nicolas Tetsuo Kimura           | RM565377 |
 
 - Turma: **2ESPX**
 - Equipe: **Equipe 1**
 - **Challenge FIAP 2026 em parceria com a TOTVS**
 
-## Estado atual da Sprint 3
+## Estado atual da Sprint 4
 
 ### Entregue no backend
 
@@ -32,13 +32,14 @@ A inteligência artificial apoia a análise e a tomada de decisão humana; o Men
 - consulta de análises e da fila de processamento;
 - geração automática e consulta de alertas, além da marcação como lido;
 - consolidação assíncrona da memória contextual do cliente;
-- envio de feedback por e-mail.
+- envio de feedback por e-mail;
+- API do Copiloto para criar e consultar chats e enviar perguntas com resposta contextual.
 
-A fila é local, mantida pelo executor assíncrono da aplicação. Não é uma fila externa ou durável e não possui retomada automática após reinicialização.
+A fila de análises é local, mantida pelo executor assíncrono da aplicação. Não é uma fila externa ou durável e não possui retomada automática após reinicialização.
 
 ### Funcionalidades em evolução
 
-- **Copiloto contextual:** possui entidades, persistência e services, mas o `ChatController` ainda não expõe operações HTTP.
+- **Copiloto no frontend:** a API está implementada, mas a tela ainda usa mocks e não consome esses endpoints.
 - **Dashboard executivo agregado:** a tela usa mocks.
 - **Busca Global:** existe como componente visual, sem endpoint dedicado.
 - **Visão 360° completa:** cadastro, reuniões e memória contextual existem, mas a experiência permanece parcial.
@@ -46,17 +47,17 @@ A fila é local, mantida pelo executor assíncrono da aplicação. Não é uma f
 
 ## Como o projeto atende à entrega de Java
 
-| Exigência da disciplina | Implementação no MentoAI |
-|---|---|
-| Model | Entidades de domínio e entidades JPA específicas da infraestrutura. |
-| DAO | Domain Repository, `RepositoryAdapter` e Spring Data Repository. |
-| Service | Application Services com casos de uso, regras e transações. |
-| CRUD | Criação, consulta, listagem, atualização e alteração de status em Cliente e Usuário. |
-| API REST | Controllers Spring MVC em `/api/v1/...`, com DTOs de entrada e saída. |
-| Validações | Jakarta Bean Validation e regras nos Services. |
-| Exceções | Exceções compartilhadas e `GlobalExceptionHandler`. |
-| Banco | Oracle Database, JPA/Hibernate e Flyway. |
-| Boas práticas | DDD, responsabilidades separadas, DTOs, mappers, injeção de dependências e transações. |
+| Exigência da disciplina | Implementação no MentoAI                                                               |
+| ----------------------- | -------------------------------------------------------------------------------------- |
+| Model                   | Entidades de domínio e entidades JPA específicas da infraestrutura.                    |
+| DAO                     | Domain Repository, `RepositoryAdapter` e Spring Data Repository.                       |
+| Service                 | Application Services com casos de uso, regras e transações.                            |
+| CRUD                    | Criação, consulta, listagem, atualização e alteração de status em Cliente e Usuário.   |
+| API REST                | Controllers Spring MVC em `/api/v1/...`, com DTOs de entrada e saída.                  |
+| Validações              | Jakarta Bean Validation e regras nos Services.                                         |
+| Exceções                | Exceções compartilhadas e `GlobalExceptionHandler`.                                    |
+| Banco                   | Oracle Database, JPA/Hibernate e Flyway.                                               |
+| Boas práticas           | DDD, responsabilidades separadas, DTOs, mappers, injeção de dependências e transações. |
 
 ### DAO x Repository
 
@@ -105,7 +106,7 @@ Contextos existentes:
 - `meeting` — clientes, reuniões e transcrições;
 - `analysis` — análises, insights e sinais comerciais;
 - `alert` — alertas e leitura por usuário;
-- `copilot` — chats e perguntas, ainda sem API funcional;
+- `copilot` — chats e perguntas, com API funcional e integração de interface ainda em evolução;
 - `user` — autenticação, usuários e perfis;
 - `feedback` — recebimento e encaminhamento de feedback.
 
@@ -113,20 +114,20 @@ Contextos existentes:
 
 ## Stack
 
-| Área | Tecnologias confirmadas |
-|---|---|
-| Backend | Java 21, Spring Boot 4.0.6, Spring MVC, Spring Security/JWT, Bean Validation, Spring Data JPA, Hibernate e Flyway |
-| Banco | Oracle Database |
-| IA | Google Gemini API |
-| Frontend | Next.js 16.3.2, React 19.2.8, TypeScript 5 e Tailwind CSS 4 |
-| Infraestrutura | Docker, Docker Compose e Oracle Cloud |
+| Área           | Tecnologias confirmadas                                                                                           |
+| -------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Backend        | Java 21, Spring Boot 4.0.6, Spring MVC, Spring Security/JWT, Bean Validation, Spring Data JPA, Hibernate e Flyway |
+| Banco          | Oracle Database                                                                                                   |
+| IA             | Google Gemini API                                                                                                 |
+| Frontend       | Next.js 16.3.2, React 19.2.8, TypeScript 5 e Tailwind CSS 4                                                       |
+| Infraestrutura | Docker, Docker Compose e Oracle Cloud                                                                             |
 
 ## Estrutura do pacote de avaliação
 
 A entrega deve ser extraída mantendo os três projetos como diretórios irmãos:
 
 ```text
-MentoAI-Sprint3/
+MentoAI-Sprint4/
 ├── mentoai-api/
 ├── mentoai-frontend/
 └── mentoai-infra/
@@ -158,11 +159,11 @@ O Compose encaminha ao backend:
 
 O Oracle Database não roda em container nesta entrega. O backend conecta ao banco remoto usando as variáveis de banco. A wallet de `mentoai-infra/wallet` é montada em `/app/wallet` no container do backend, em modo somente leitura (`ro`), conforme o Compose.
 
-Não é necessário criar outra wallet nem instalar Oracle local para avaliar a Sprint 3.
+Não é necessário criar outra wallet nem instalar Oracle local para avaliar a Sprint 4.
 
 ## Gemini / Google AI Studio
 
-`GEMINI_API_KEY` é passada ao backend pelo Compose e já estará preenchida no `.env` da avaliação. A integração processa a transcrição e produz resumo executivo, sentimento, insights, sinais comerciais e evidências. Depois da análise, a mesma abstração de IA apoia a consolidação do contexto do cliente. Não é necessário criar uma chave nova.
+`GEMINI_API_KEY` é passada ao backend pelo Compose e já estará preenchida no `.env` da avaliação. A integração processa a transcrição e produz resumo executivo, sentimento, insights, sinais comerciais e evidências. Depois da análise, a mesma abstração de IA apoia a consolidação do contexto do cliente. O backend também dispõe de integração de IA para respostas do Copiloto. Não é necessário criar uma chave nova.
 
 ## Como executar
 
@@ -178,8 +179,8 @@ docker compose up --build
 5. Aguarde backend e frontend iniciarem.
 6. Acesse:
 
-- Frontend: <http://localhost:3000>
-- Backend: <http://localhost:8080>
+- Frontend: [http://localhost:3000](http://localhost:3000)
+- Backend: [http://localhost:8080](http://localhost:8080)
 
 Para encerrar:
 
@@ -209,40 +210,45 @@ O Oracle é remoto e não sobe no Compose.
 
 Nesta Sprint, o formulário envia temporariamente `usuarioId = 1`; esse usuário deve existir no banco do pacote. Credenciais não são publicadas no README e devem ser fornecidas pela equipe em meio seguro.
 
+Para avaliar a API do Copiloto, use as rotas da tabela abaixo com um chat associado a um cliente. A tela do Copiloto no frontend ainda usa dados simulados e não valida essa integração de ponta a ponta.
+
 ## Endpoints principais
 
 Exceto a autenticação, as rotas exigem JWT. A gestão de usuários exige perfil `DIRETOR_COMERCIAL`.
 
-| Método | Endpoint | Descrição |
-|---|---|---|
-| `POST` | `/api/v1/auth/login` | Autentica e retorna JWT. |
-| `POST` / `GET` | `/api/v1/usuarios` | Cria ou lista usuários. |
-| `GET` / `PUT` | `/api/v1/usuarios/{id}` | Consulta ou atualiza um usuário. |
-| `PATCH` | `/api/v1/usuarios/{id}/status` | Altera o status do usuário. |
-| `POST` / `GET` | `/api/v1/clientes` | Cria ou lista clientes. |
-| `GET` / `PUT` | `/api/v1/clientes/{id}` | Consulta ou atualiza um cliente. |
-| `PATCH` | `/api/v1/clientes/{id}/status` | Altera o status do cliente. |
-| `GET` | `/api/v1/clientes/{id}/reunioes` | Lista reuniões do cliente. |
-| `GET` | `/api/v1/reunioes` | Lista reuniões. |
-| `GET` | `/api/v1/reunioes/{id}` | Consulta uma reunião. |
-| `GET` | `/api/v1/reunioes/{id}/transcricao` | Consulta sua transcrição. |
-| `GET` | `/api/v1/transcricoes` | Lista transcrições. |
-| `GET` | `/api/v1/transcricoes/{id}` | Consulta uma transcrição. |
-| `POST` | `/api/v1/transcricoes/upload` | Envia arquivo e inicia a análise. |
-| `GET` | `/api/v1/analises/{id}` | Consulta uma análise. |
-| `GET` | `/api/v1/analises/reuniao/{reuniaoId}` | Consulta por reunião. |
-| `GET` | `/api/v1/analises/fila` | Consulta fila e finalizados. |
-| `GET` | `/api/v1/alertas` | Lista alertas. |
-| `GET` | `/api/v1/alertas/{id}` | Consulta um alerta. |
-| `PATCH` | `/api/v1/alertas/{id}/lido` | Marca o vínculo de alerta como lido. |
+| Método         | Endpoint                                     | Descrição                           |
+| -------------- | -------------------------------------------- | ----------------------------------- |
+| `POST`         | `/api/v1/auth/login`                         | Autentica e retorna JWT.            |
+| `POST` / `GET` | `/api/v1/usuarios`                           | Cria ou lista usuários.             |
+| `GET` / `PUT`  | `/api/v1/usuarios/{id}`                      | Consulta ou atualiza um usuário.    |
+| `PATCH`        | `/api/v1/usuarios/{id}/status`               | Altera o status do usuário.         |
+| `POST` / `GET` | `/api/v1/clientes`                           | Cria ou lista clientes.             |
+| `GET` / `PUT`  | `/api/v1/clientes/{id}`                      | Consulta ou atualiza um cliente.    |
+| `PATCH`        | `/api/v1/clientes/{id}/status`               | Altera o status do cliente.         |
+| `GET`          | `/api/v1/clientes/{id}/reunioes`             | Lista reuniões do cliente.          |
+| `GET`          | `/api/v1/reunioes`                           | Lista reuniões.                     |
+| `GET`          | `/api/v1/reunioes/{id}`                      | Consulta uma reunião.               |
+| `GET`          | `/api/v1/reunioes/{id}/transcricao`          | Consulta sua transcrição.           |
+| `GET`          | `/api/v1/transcricoes`                       | Lista transcrições.                 |
+| `GET`          | `/api/v1/transcricoes/{id}`                  | Consulta uma transcrição.           |
+| `POST`         | `/api/v1/transcricoes/upload`                | Envia arquivo e inicia a análise.   |
+| `GET`          | `/api/v1/analises/{id}`                      | Consulta uma análise.               |
+| `GET`          | `/api/v1/analises/reuniao/{reuniaoId}`       | Consulta por reunião.               |
+| `GET`          | `/api/v1/analises/fila`                      | Consulta fila e finalizados.        |
+| `GET`          | `/api/v1/alertas`                            | Lista alertas.                      |
+| `GET`          | `/api/v1/alertas/{id}`                       | Consulta um alerta.                 |
+| `PATCH`        | `/api/v1/alertas/{id}/lido`                  | Marca o vínculo de alerta como lido.|
+| `POST`         | `/api/v1/feedbacks`                          | Envia feedback.                     |
+| `POST`         | `/api/v1/copilot/chats`                      | Cria chat associado a cliente.      |
+| `GET`          | `/api/v1/copilot/chats`                      | Lista chats do usuário autenticado. |
+| `GET`          | `/api/v1/copilot/chats/{chatId}`             | Consulta histórico de um chat.      |
+| `POST`         | `/api/v1/copilot/chats/{chatId}/messages`    | Envia pergunta ao Copiloto.         |
 
-Não existem endpoints funcionais de Dashboard, Busca Global ou Copiloto nesta Sprint.
+Não existem endpoints funcionais de Dashboard ou Busca Global nesta Sprint.
 
 ## Integração com o frontend e mocks
 
-O frontend concentra o acesso a dados em `src/services`, permitindo substituir mocks por endpoints sem reestruturar toda a UI. Login, clientes, usuários, reuniões, upload, fila, detalhe da análise e consulta de alertas usam a API real.
-
-Dashboard e Copiloto ainda usam mocks. A Visão 360° permanece parcial, e a leitura de alertas possui a limitação descrita anteriormente. Portanto, o frontend ainda não está 100% integrado.
+O frontend concentra o acesso a dados em `src/services`, permitindo substituir mocks por endpoints sem reestruturar toda a UI. Login, clientes, usuários, reuniões, upload, fila, detalhe da análise e consulta de alertas usam a API real. A tela do Copiloto possui integração simulada, apesar de a API correspondente estar implementada; Dashboard e Busca Global também não são integrados ao backend. A Visão 360° permanece parcial, e a leitura de alertas possui a limitação descrita anteriormente. Portanto, o frontend ainda não está 100% integrado.
 
 ## Principal fluxo funcional desta Sprint
 
@@ -267,6 +273,11 @@ Há testes unitários e de integração com JUnit, Mockito e Spring. A suíte co
 
 O teste Oracle de resumos recentes utiliza `ORACLE_TEST_URL`, `ORACLE_TEST_USERNAME` e `ORACLE_TEST_PASSWORD`; sem `ORACLE_TEST_URL`, ele é ignorado. Assim, não há execução obrigatória da suíte pelo professor sem configuração adicional. No pacote Docker, o foco é o fluxo funcional.
 
-## Observações finais da Sprint 3
+## Documentação complementar
 
-Este README descreve o estado da Sprint 3. Algumas experiências agregadas e o Copiloto permanecem em evolução. O foco é demonstrar arquitetura Java, persistência, API REST e o fluxo principal de análise.
+- [Decisões técnicas](docs/TECHNICAL_DECISIONS.md)
+- [Documento DDD da Sprint 4](docs/MentoAI_DDD_Sprint4.pdf)
+
+## Observações finais da Sprint 4
+
+Este README descreve o estado do projeto na Sprint 4. Algumas telas e integrações, especialmente Dashboard, Busca Global e Copiloto no frontend, ainda estão em evolução. O foco desta entrega é demonstrar arquitetura, persistência, API REST, o fluxo de análise e a evolução do domínio para conversação contextual.
